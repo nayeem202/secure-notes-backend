@@ -12,6 +12,7 @@ import { errorHandler, notFound } from './middleware/error-handler.js';
 import { protectMutations } from './middleware/security.js';
 import { allowFrontendOrigin } from './middleware/cors.js';
 import { ApiError } from './api-error.js';
+import { documentationRoutes } from './documentation/routes.js';
 
 export function createHttpApp({ config, useCases, health, logger }) {
   const app = express();
@@ -33,6 +34,7 @@ export function createHttpApp({ config, useCases, health, logger }) {
     }));
     next();
   });
+  app.use(documentationRoutes(config));
   app.get('/health/live', (req, res) => res.json({ status: 'ok' }));
   app.get('/health/ready', async (req, res) => {
     const ready = await health();

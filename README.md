@@ -1,156 +1,214 @@
 # Secure Notes Backend
 
-## Live deployment
+Express REST API for a secure note-taking application, with MongoDB/Mongoose, JWT authentication, bcrypt, role-based access, and a separate vanilla JavaScript frontend.
 
-- Frontend: [https://secure-notes-frontend-rho.vercel.app](https://secure-notes-frontend-rho.vercel.app)
-- API: [https://secure-notes-backend-delta.vercel.app/api](https://secure-notes-backend-delta.vercel.app/api)
-- Database readiness: [https://secure-notes-backend-delta.vercel.app/health/ready](https://secure-notes-backend-delta.vercel.app/health/ready)
-- Frontend repository: https://github.com/nayeem202/secure-notes-frontend
-- Backend repository: https://github.com/nayeem202/secure-notes-backend
+## Live project
 
-The production URLs are public and do not require a Vercel account. Register through the website to use private notes. Admin setup is documented in the backend README.
+| Resource | URL |
+| --- | --- |
+| Website | [Secure Notes](https://secure-notes-frontend-rho.vercel.app) |
+| Backend API base | `https://secure-notes-backend-delta.vercel.app/api` |
+| Interactive API documentation | [Swagger UI](https://secure-notes-backend-delta.vercel.app/docs) |
+| OpenAPI document | [openapi.json](https://secure-notes-backend-delta.vercel.app/openapi.json) |
+| Public API example | [GET /api/posts](https://secure-notes-backend-delta.vercel.app/api/posts) |
+| Database readiness | [GET /health/ready](https://secure-notes-backend-delta.vercel.app/health/ready) |
+| Frontend repository | [nayeem202/secure-notes-frontend](https://github.com/nayeem202/secure-notes-frontend) |
 
+The website and API documentation are accessible without a Vercel account. The API base is a prefix: GET `/api` itself is not a route.
 
-Standalone Express REST API for Secure Notes. This is the backend project and GitHub repository; the independent static frontend is in `secure-notes-frontend`.
+## Try the API
 
-## Stack and structure
+1. Open Swagger UI and expand `POST /api/auth/register` to register a unique account, or use `POST /api/auth/login` for an existing account.
+2. Click **Try it out**, enter the JSON body, and click **Execute**.
+3. Copy `data.accessToken` from the successful response. Click **Authorize** and paste the token without the `Bearer` prefix.
+4. Test your private notes and posts. Administration operations require an administrator account.
 
-- Node.js 20.19 through 24.x (production: 24.x), Express 5, MongoDB, and Mongoose
-- JWT authentication with bcrypt password hashing
-- Clean Architecture separates domain policies, application use cases, infrastructure adapters, and HTTP adapters; see [ARCHITECTURE.md](ARCHITECTURE.md)
-- MongoDB transactions require a replica set; the supplied Docker Compose setup initializes one
-- `SERVE_FRONTEND=false` keeps this project API-only
+Swagger UI supplies the write-protection header automatically and keeps authorization in memory. For another API client, send `X-CSRF-Protection: 1` on registration/login and cookie-authenticated writes. Protected requests accept `Authorization: Bearer <accessToken>`. POST/PATCH bodies must use `Content-Type: application/json`.
 
-## Run locally on Windows
+Reviewer administrator credentials are provided through the private submission email.
 
-1. Install Node.js 24 LTS and Docker Desktop with its Linux engine.
-2. Open PowerShell in `D:\secure-notes-backend` and start the backend:
+## Features and architecture
+
+- Users create, read, update, and delete their own private notes.
+- Administrators manage users, use their own notes, and read all users' notes.
+- Posts are public to read; only the author can change or delete a post.
+- Public posts-by-username lookup exposes only the username, public posts, and pagination.
+- Interest grouping uses one aggregate call, with pagination for both groups and member usernames.
+- User-post lookup uses one aggregate with a Posts `$lookup`.
+- Five explicit indexes are declared with `schema.index()`; query plans are checked in tests.
+- Domain rules, application use cases, infrastructure adapters, and HTTP adapters are separated through dependency injection.
+
+See [ARCHITECTURE.md](ARCHITECTURE.md), [REQUIREMENTS.md](REQUIREMENTS.md), and [VERIFICATION.md](VERIFICATION.md).
+
+## Local setup
+
+Use Node.js 24.x and Git. The backend package supports Node.js `>=20.19.0 <25`. Docker instructions require a local Linux-container engine and Docker Compose.
+
+Clone both repositories into the same parent directory:
+
+```bash
+git clone https://github.com/nayeem202/secure-notes-backend.git
+git clone https://github.com/nayeem202/secure-notes-frontend.git
+```
+
+### Windows with Docker Desktop
+
+Start Docker Desktop's Linux engine, then open PowerShell in the backend repository:
 
 ```powershell
+cd secure-notes-backend
 .\start-windows-docker.cmd
 ```
 
-The launcher creates a private `.env` if missing, builds the API and MongoDB containers, runs the username migration and required index setup, and checks `http://localhost:3000/health/ready`.
+The launcher prepares an ignored `.env` and private JWT secret if missing, builds the API, starts a MongoDB replica set, initializes indexes, and checks readiness. Existing environment values are preserved.
 
-3. Open a second PowerShell window and start the standalone frontend:
+### Linux with Docker Compose
 
-```powershell
-cd D:\secure-notes-frontend
-npm.cmd run dev
-```
-
-4. Open `http://localhost:5500`. The frontend calls the backend at `http://localhost:3000/api`.
-
-The backend `.env` defaults to `APP_ORIGIN=http://localhost:5500` and `SERVE_FRONTEND=false`. Do not change the origin unless the frontend's local or deployed origin changes.
-
-To stop the containers without deleting data:
-
-```powershell
-& "$env:LOCALAPPDATA\Programs\DockerDesktop\resources\bin\docker.exe" --context desktop-linux compose -p secure-notes-windows -f .\compose.windows.yaml stop
-```
-
-## Run locally on Linux
-
-Install Node.js 24 LTS and Docker Engine with the Compose plugin. From this directory, copy `.env.example` to `.env`, generate a JWT secret, then start the backend:
+From the backend repository:
 
 ```bash
-cp .env.example .env
-node -e "console.log(require('node:crypto').randomBytes(48).toString('hex'))"
+cd secure-notes-backend
+node scripts/setup-local.js
 docker compose -f compose.windows.yaml up --build -d --wait
 ```
 
-Set the generated value as `JWT_SECRET` in `.env`. In a second terminal, run `npm run dev` from `secure-notes-frontend`, then open `http://localhost:5500`.
+The setup script generates the JWT secret before the containers start. Despite its filename, `compose.windows.yaml` also runs with Docker Compose on Linux.
 
-## Admin account
+Both Docker paths use their own MongoDB replica set and persistent volume. Compose overrides `MONGODB_URI` with its container database URI; it does not use an Atlas URI from `.env`.
 
-Set `BOOTSTRAP_ADMIN_EMAIL`, `BOOTSTRAP_ADMIN_USERNAME`, and `BOOTSTRAP_ADMIN_PASSWORD` in `.env`, then apply the app environment and create the account:
+### Start the frontend
 
-```powershell
-& "$env:LOCALAPPDATA\Programs\DockerDesktop\resources\bin\docker.exe" --context desktop-linux compose -p secure-notes-windows -f .\compose.windows.yaml up -d app
-& "$env:LOCALAPPDATA\Programs\DockerDesktop\resources\bin\docker.exe" --context desktop-linux compose -p secure-notes-windows -f .\compose.windows.yaml exec app npm run create-admin
+In a second terminal:
+
+```bash
+cd secure-notes-frontend
+npm run dev
 ```
 
-Use an unused email and username. The password must be at least 6 characters and at most 72 UTF-8 bytes. Remove the bootstrap password from `.env` after creation. The bootstrap script does not reset existing account passwords.
+Use `npm.cmd` in Windows PowerShell if script execution policy blocks `npm.ps1`. The frontend has no package dependencies to install.
+
+Open `http://localhost:5500`. The API is at `http://localhost:3000/api`, and local Swagger UI is at `http://localhost:3000/docs`. Keep these local environment settings:
+
+```dotenv
+APP_ORIGIN=http://localhost:5500
+API_ORIGIN=http://localhost:3000
+SERVE_FRONTEND=false
+```
+
+### Run directly against Atlas
+
+To run Node.js on the host with your own Atlas cluster or an existing MongoDB replica set:
+
+```bash
+npm ci --include=dev
+npm run setup:local
+```
+
+Set `MONGODB_URI` in the ignored backend `.env` to your connection string with the `secure_notes` database. Allow your computer's IP in Atlas and use a database account with `readWrite` on that database. Then run:
+
+```bash
+npm run db:indexes
+npm run db:check
+npm run dev
+```
+
+`db:check` verifies authentication, ping, topology, collections, and required indexes without modifying data. `db:indexes` creates required indexes and can backfill missing usernames on existing accounts. The application requires transactions, so a standalone MongoDB server is insufficient.
+
+## Administrator setup
+
+Set `BOOTSTRAP_ADMIN_EMAIL`, `BOOTSTRAP_ADMIN_USERNAME`, and `BOOTSTRAP_ADMIN_PASSWORD` in the backend `.env`. Choose an unused email/username and a password of 6–72 UTF-8 bytes.
+
+For a host process connected to Atlas or another replica set:
+
+```bash
+npm run create-admin
+```
+
+For the Linux Docker stack, apply the environment and run the command inside the app:
+
+```bash
+docker compose -f compose.windows.yaml up -d --force-recreate app
+docker compose -f compose.windows.yaml exec app npm run create-admin
+```
+
+For the Windows launcher stack:
+
+```powershell
+docker --context desktop-linux compose -p secure-notes-windows -f compose.windows.yaml up -d --force-recreate app
+docker --context desktop-linux compose -p secure-notes-windows -f compose.windows.yaml exec app npm run create-admin
+```
+
+If the launcher uses the local `default` Linux-engine context, replace `desktop-linux` with `default`. The bootstrap command does not reset an existing account's password.
+
+After creation, remove `BOOTSTRAP_ADMIN_PASSWORD` from `.env`. For Docker, repeat the matching `up -d --force-recreate app` command to remove it from the running container environment.
+
+To stop Docker without deleting database data, use the matching command prefix with `stop`:
+
+```bash
+docker compose -f compose.windows.yaml stop
+```
+
+For the Windows launcher stack, use `docker --context desktop-linux compose -p secure-notes-windows -f compose.windows.yaml stop`.
 
 ## Environment
+
+The local template is [.env.example](.env.example). `npm run setup:local` creates the ignored `.env` and generates a missing JWT secret.
 
 | Variable | Purpose |
 | --- | --- |
 | `NODE_ENV` | `development`, `test`, or `production` |
-| `HOST` / `PORT` | API bind address and port; defaults `127.0.0.1` and `3000` |
-| `APP_ORIGIN` | Exact frontend origin allowed by CORS and mutation checks; local default `http://localhost:5500` |
-| `SERVE_FRONTEND` | `false` for this API-only project |
-| `MONGODB_URI` | MongoDB replica set URI |
-| `JWT_SECRET` | Random secret with at least 48 characters |
-| `JWT_TTL_SECONDS` | Access token lifetime; default `900` |
-| `BCRYPT_ROUNDS` | bcrypt work factor; default `12` |
-| `AUTO_INDEX` | Development index setup; disable in production |
-| `BOOTSTRAP_ADMIN_EMAIL` | One-time administrator setup |
-| `BOOTSTRAP_ADMIN_USERNAME` | Unique administrator username |
-| `BOOTSTRAP_ADMIN_PASSWORD` | One-time administrator setup; remove after use |
+| `HOST` / `PORT` | Host-process defaults: `127.0.0.1` / `3000`; containers bind internally to `0.0.0.0` |
+| `APP_ORIGIN` | Exact frontend origin; local template uses `http://localhost:5500` |
+| `API_ORIGIN` | Exact backend origin used by Swagger UI and write-origin checks; local default follows `PORT` |
+| `SERVE_FRONTEND` | Set `false` for the separate frontend |
+| `MONGODB_URI` | MongoDB replica-set or Atlas connection string |
+| `JWT_SECRET` | Private random secret of at least 48 characters |
+| `JWT_TTL_SECONDS` | Access-token lifetime; default `900` seconds |
+| `BCRYPT_ROUNDS` | Password work factor; default `12` |
+| `AUTO_INDEX` | `true` for local setup; `false` in production |
+| `TRUST_PROXY_HOPS` | Trusted proxy hops; local `0`, current Vercel deployment `1` |
+| `API_RATE_LIMIT` | Default `300` requests per minute per instance |
+| `AUTH_RATE_LIMIT` | Default `20` auth requests per 15 minutes per instance |
+| `QUERY_TIMEOUT_MS` | Database query timeout; default `10000` ms |
+| `BOOTSTRAP_ADMIN_*` | One-time administrator setup; optional name defaults to `Administrator` |
+
+Origins must have no path or trailing slash and use HTTPS in production. CORS permits the configured frontend origin; browser writes must come from the configured frontend or backend origin.
 
 ## API overview
 
-Base URL: `http://localhost:3000/api`.
+Paths below are relative to `/api`. Swagger UI includes request schemas, parameters, response schemas, and authentication controls.
 
 | Method | Endpoint | Access |
 | --- | --- | --- |
-| POST | `/auth/register` | Public; requires `name`, unique `username`, `email`, `password` |
-| POST | `/auth/login` | Public; accepts either `username` or `email` with `password` |
-| GET | `/auth/me` | Signed in |
-| PATCH | `/auth/me` | Signed in; update name, username, or interests |
-| PATCH | `/auth/password` | Signed in |
-| POST | `/auth/logout` | Signed in |
+| POST | `/auth/register` | Public; name, unique username, email, password |
+| POST | `/auth/login` | Public; either username or email, plus password |
+| GET, PATCH | `/auth/me` | Signed in; read/update own profile |
+| PATCH | `/auth/password` | Signed in; current and new password |
+| POST | `/auth/logout` | Signed in; revokes existing sessions |
 | GET, POST | `/notes` | Signed in; own notes |
-| GET, PATCH, DELETE | `/notes/:id` | Owner; admins may read any note |
-| GET, POST | `/posts` | Public list; signed-in post creation |
-| GET, PATCH, DELETE | `/posts/:id` | Public read; author write access |
-| GET | `/users/:username/posts` | Public; one aggregation pipeline with `$lookup` |
-| GET, POST | `/admin/users` | Admin; paginated list and user creation |
-| GET, PATCH, DELETE | `/admin/users/:id` | Admin |
-| GET | `/admin/notes` | Admin; paginated, optional `owner=<username>` |
-| GET | `/admin/analytics/interests` | Admin; paginated interest groups |
+| GET, PATCH, DELETE | `/notes/:id` | Owner; administrators may read any note |
+| GET, POST | `/posts` | Public list; authenticated creation |
+| GET, PATCH, DELETE | `/posts/:id` | Public read; author changes |
+| GET | `/users/:username/posts` | Public username and posts only |
+| GET, POST | `/admin/users` | Administrator |
+| GET, PATCH, DELETE | `/admin/users/:id` | Administrator |
+| GET | `/admin/notes` | Administrator; optional `owner=<username>` |
+| GET | `/admin/analytics/interests` | Administrator; optional exact `interest` filter |
 
-Every list endpoint accepts `page` and `limit`; default page is 1, default limit is 10, and maximum limit is 100. Interest groups also accept `memberPage` and `memberLimit` with the same defaults/limit for usernames within each group. Usernames are 3–30 characters, normalized to lowercase, and unique. Duplicate usernames return HTTP 409.
+All lists accept `page` and `limit`: defaults 1/10, maximum limit 100, maximum offset 100000. Interest groups additionally accept `memberPage` and `memberLimit` with the same limits. Usernames are 3–30 characters, normalized to lowercase, and unique; duplicates return HTTP 409.
 
-The public `/api/users/:username/posts` response contains only `user: { username }`, public posts, and pagination. Names, email addresses, interests, roles, and authentication fields are excluded.
+The standalone frontend stores bearer tokens in memory. Reloading it requires signing in again. Logout revokes the account's existing tokens.
 
-The frontend uses the short-lived access token in an `Authorization: Bearer` header. Tokens stay in memory and are not written to browser storage; a separately hosted frontend asks the user to sign in again after a reload. CORS and write-origin validation allow only the exact `APP_ORIGIN`.
+## Tests and deployment
 
-## Tests and checks
-
-```powershell
-npm.cmd ci --include=dev
-npm.cmd run check
-npm.cmd test
+```bash
+npm ci --include=dev
+npm run check
+npm test
 ```
 
-The integration suite uses an isolated in-memory MongoDB replica set. The browser suite belongs to the separate frontend project and is not part of this backend package.
+Tests cover application boundaries, authentication, ownership, administrator permissions, transactions, pagination, aggregations, indexes, and the OpenAPI contract. Integration tests start an isolated MongoDB replica set; the first run may download the MongoDB binary. Browser verification results are recorded in [VERIFICATION.md](VERIFICATION.md).
 
-## Check MongoDB Atlas
+Production runs on Vercel with MongoDB Atlas. [DEPLOYMENT.md](DEPLOYMENT.md) documents environment setup, index migration, public reviewer access, and the submission checklist. `render.yaml` is also supplied for a Docker-based alternative.
 
-Run `npm run setup:local` to prepare the ignored backend `.env` and a private JWT secret. Set `MONGODB_URI` to the URI copied from your Atlas cluster, including the `secure_notes` database name, then run `npm run db:check`.
-
-The check verifies authentication, ping, replica-set/sharded topology, and required indexes without changing data. On a fresh database, review and run `npm run db:indexes` once, then repeat the check. Index setup can backfill usernames on existing accounts.
-
-The Atlas database user needs `readWrite` on `secure_notes`. Network access must permit the deployed backend. Reviewers access the frontend/API; their IP addresses do not need to be added to Atlas. The Windows helper contains seed addresses for the originally configured cluster; use your own cluster's Atlas connection string if it differs.
-
-## Deploy on Vercel
-
-See [DEPLOYMENT.md](DEPLOYMENT.md). The `api/index.js` entrypoint reuses the MongoDB pool across warm invocations. `vercel.json` routes API and health URLs to it. `npm start` continues to use the standalone server locally or on Render.
-
-## Deploy backend
-
-This repository includes `render.yaml` for a free Docker Web Service with `/health/ready` health checks. Create a MongoDB Atlas Free cluster and database user first and add your computer's current public IP to the Atlas IP access list. Then run the Windows helper from PowerShell. It securely prompts only for the database password, builds the standard `mongodb://` seed-list URI (avoiding blocked SRV DNS lookups), writes it to the ignored local `.env`, installs dependencies, and initializes the required indexes:
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup-atlas-windows.ps1
-```
-
-The index command also backfills usernames for existing accounts. The application requires these indexes at startup and runs with `AUTO_INDEX=false` in production. Render Free does not provide a pre-deploy command, so run this once from your computer. After creating the Render service, add its outbound IP ranges from the service's Outbound tab to the Atlas IP access list. Keep only the required trusted ranges; remove your temporary computer IP afterward if you do not need local database access.
-
-Set Render's `MONGODB_URI` to the Atlas URI and `APP_ORIGIN` to the exact Netlify site origin, such as `https://example.netlify.app`, with no trailing slash. `render.yaml` generates `JWT_SECRET` automatically and trusts one Render proxy hop for client IP handling. Never commit `.env` or share either secret.
-
-The default rate limiter uses process memory. Configure a shared rate-limit store before running multiple backend instances.
-
-Deploy the frontend separately from the `secure-notes-frontend` project. Set its `config.js` API base URL to this backend's public `/api` URL, then set this backend's `APP_ORIGIN` to the exact deployed frontend origin.
+The rate limiter uses per-instance memory; enforcing one global limit across multiple instances requires a shared store.

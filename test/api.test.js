@@ -327,3 +327,21 @@ test('only the five required schema indexes exist, and explain shows indexes sup
   const lookupPlan = await User.aggregate(userPostsPipeline(users.alice.user.username, { page: 1, limit: 10 })).explain('executionStats');
   assert.ok(JSON.stringify(lookupPlan).includes('posts_author_id'));
 });
+
+test('documentation-origin writes preserve login, bearer authorization, and CSRF checks', async () => {
+  const origin = 'https://api.example.com';
+  const app = createApp({
+    ...env.config, NODE_ENV: 'production', APP_ORIGIN: 'https://frontend.example.com', API_ORIGIN: origin,
+  }, { logger: silentLogger });
+  await request(app).post('/api/auth/login').set('Origin', origin)
+    .send({ username: users.alice.user.username, password: testPassword }).expect(403);
+  const login = await request(app).post('/api/auth/login').set('Origin', origin)
+    .set('Sec-Fetch-Site', 'same-origin').set('X-CSRF-Protection', '1')
+    .send({ username: users.alice.user.username, password: testPassword }).expect(200);
+  const token = login.body.data.accessToken;
+  await request(app).post('/api/notes').set('Origin', origin).set('Authorization', `Bearer ${token}`)
+    .set('X-CSRF-Protection', '1').send({ title: 'Created through documentation' }).expect(201);
+  await request(app).post('/api/notes').set('Origin', 'https://evil.example')
+    .set('Authorization', `Bearer ${token}`).set('X-CSRF-Protection', '1')
+    .send({ title: 'Blocked' }).expect(403);
+});

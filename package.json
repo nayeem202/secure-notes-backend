@@ -20,8 +20,8 @@
     "local": "node scripts/start-local.js",
     "setup:local": "node scripts/setup-local.js",
     "docker:windows": "node scripts/start-docker-windows.js",
-    "test": "node --test --test-concurrency=1 test/unit.test.js test/application.test.js test/architecture.test.js test/local-setup.test.js test/docker-launcher.test.js test/api.test.js",
-    "test:unit": "node --test test/unit.test.js test/application.test.js test/architecture.test.js test/local-setup.test.js test/docker-launcher.test.js",
+    "test": "node --test --test-concurrency=1 test/unit.test.js test/application.test.js test/architecture.test.js test/documentation.test.js test/local-setup.test.js test/docker-launcher.test.js test/api.test.js",
+    "test:unit": "node --test test/unit.test.js test/application.test.js test/architecture.test.js test/documentation.test.js test/local-setup.test.js test/docker-launcher.test.js",
     "test:integration": "node --test test/api.test.js",
     "check": "node scripts/check-syntax.js",
     "db:check": "node scripts/check-database.js",
@@ -36,9 +36,11 @@
     "helmet": "8.1.0",
     "jsonwebtoken": "9.0.3",
     "mongoose": "9.12.0",
+    "swagger-ui-dist": "5.34.1",
     "zod": "4.6.7"
   },
   "devDependencies": {
+    "@apidevtools/swagger-parser": "12.1.0",
     "mongodb-memory-server": "10.3.0",
     "supertest": "7.2.2"
   }

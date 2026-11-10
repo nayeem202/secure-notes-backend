@@ -9,6 +9,7 @@ export function loadConfig(env = process.env) {
     HOST: z.string().min(1).default('127.0.0.1'),
     PORT: integer(3000, 1, 65535),
     APP_ORIGIN: z.url().default('http://localhost:3000'),
+    API_ORIGIN: z.url().optional(),
     SERVE_FRONTEND: boolean.default(true),
     MONGODB_URI: z.string().regex(/^mongodb(?:\+srv)?:\/\//),
     JWT_SECRET: z.string().min(48).refine(value => !/^(change|replace|example|your[-_])/i.test(value),
@@ -26,12 +27,18 @@ export function loadConfig(env = process.env) {
     throw new Error(`Invalid environment: ${result.error.issues.map(i => `${i.path.join('.')}: ${i.message}`).join('; ')}`);
   }
   const config = result.data;
-  const origin = new URL(config.APP_ORIGIN);
-  if (!['http:', 'https:'].includes(origin.protocol) || origin.origin !== config.APP_ORIGIN) {
-    throw new Error('APP_ORIGIN must be an HTTP(S) origin without a path or trailing slash');
+  if (!config.API_ORIGIN && config.NODE_ENV !== 'production') {
+    config.API_ORIGIN = `http://localhost:${config.PORT}`;
   }
-  if (config.NODE_ENV === 'production' && origin.protocol !== 'https:') {
-    throw new Error('APP_ORIGIN must use HTTPS in production');
+  for (const key of ['APP_ORIGIN', 'API_ORIGIN']) {
+    if (!config[key]) continue;
+    const origin = new URL(config[key]);
+    if (!['http:', 'https:'].includes(origin.protocol) || origin.origin !== config[key]) {
+      throw new Error(`${key} must be an HTTP(S) origin without a path or trailing slash`);
+    }
+    if (config.NODE_ENV === 'production' && origin.protocol !== 'https:') {
+      throw new Error(`${key} must use HTTPS in production`);
+    }
   }
   config.AUTO_INDEX ??= config.NODE_ENV !== 'production';
   if (config.NODE_ENV === 'production' && config.AUTO_INDEX) {
