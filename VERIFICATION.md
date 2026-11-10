@@ -1,6 +1,6 @@
 # Verification record
 
-Verified on 2026-11-10 in the supplied Linux workspace and the live Vercel production deployment.
+Verified on 2026-11-11 in the supplied Linux workspace and the live Vercel production deployment.
 
 ## Production
 
@@ -13,10 +13,10 @@ Verified on 2026-11-10 in the supplied Linux workspace and the live Vercel produ
 | Readiness                     | [Backend readiness](https://secure-notes-backend-delta.vercel.app/health/ready) returns HTTP 200 and `{"status":"ready"}` in the final checks |
 | Hosting target                | `secure-note-team`, production                                                                                                                |
 | Backend runtime               | Node.js 24.x, Mumbai (`bom1`), 30-second maximum request duration                                                                             |
-| Backend deployed source       | `e5dfe6db9635a99b0576a96ac9fefd5eae23932e`                                                                                                    |
-| Frontend deployed source      | `d9033f382ca97b2638db4e8e7cd0cc062b66df8d`                                                                                                    |
-| Backend deployment            | `dpl_5bDoBmWdgoZk1AdNXWD6nxWvrwPT`, READY, promoted                                                                                           |
-| Frontend deployment           | `dpl_4ZXhZHt5pc2NuVZQEwu2itM1Ww5d`, READY, promoted                                                                                           |
+| Backend deployed source       | `05012a7221488a58b2eddbf5efc0a70291480be8`                                                                                                    |
+| Frontend deployed source      | `74e857e16e004ce7c0a385ccb4188565a5dcde2c`                                                                                                    |
+| Backend deployment            | `dpl_S4fcibAfDhp6pzK7T6H9QVbd4txi`, READY, promoted                                                                                           |
+| Frontend deployment           | `dpl_A7DoKPH1eqekqxCRMhkCV7zFDV9G`, READY, promoted                                                                                           |
 | Atlas                         | `secure_notes`: authentication, ping, replica-set topology, and required indexes passed                                                       |
 | Anonymous access              | Frontend and readiness accessible without a Vercel session or bypass header                                                                   |
 | CORS                          | Production frontend preflight returned HTTP 204 with the exact allowed origin                                                                 |
@@ -131,3 +131,5 @@ The workflow runner is pinned to Ubuntu 24.04 to keep the MongoDB test environme
 ## API v1 update
 
 Application endpoints now use `/api/v1`. Frontend configuration, Swagger paths, local launcher output, and setup/deployment documentation use the versioned prefix. Compatibility tests cover legacy redirects with query strings, JSON bodies, bearer tokens, preflights, PATCH, and DELETE. Unsupported API versions return HTTP 404.
+
+Both v1 builds were staged and source assets compared before promotion. The backend was promoted first; the existing unversioned frontend then passed reviewer login and administrator-read checks through redirects. After frontend promotion, the complete frontend flow passed and asserted that application requests use `/api/v1` directly. Swagger login, JWT authorization, private-note CRUD, logout, and reviewer administrator access also passed on v1. Three temporary test accounts and their data were removed; existing reviewer sessions were preserved.
