@@ -25,13 +25,17 @@ try {
   $uri = "mongodb+srv://nayeemahmedemba_db_user:$encodedPassword@cluster0.uzlvf5f.mongodb.net/secure_notes?retryWrites=true&w=majority&appName=Cluster0"
   $encodedPassword = $null
   $envPath = Join-Path $projectRoot '.env'
-  $envText = [IO.File]::ReadAllText($envPath)
-  if ($envText -match '(?m)^MONGODB_URI=.*$') {
-    $envText = [Regex]::Replace($envText, '(?m)^MONGODB_URI=.*$', [System.Text.RegularExpressions.MatchEvaluator]{ param($match) "MONGODB_URI=$uri" }, 1)
-  } else {
-    $envText = $envText.TrimEnd() + "`nMONGODB_URI=$uri`n"
+  $envLines = [IO.File]::ReadAllLines($envPath)
+  $uriLineFound = $false
+  for ($index = 0; $index -lt $envLines.Length; $index++) {
+    if ($envLines[$index].StartsWith('MONGODB_URI=')) {
+      $envLines[$index] = "MONGODB_URI=$uri"
+      $uriLineFound = $true
+      break
+    }
   }
-  [IO.File]::WriteAllText($envPath, $envText, [Text.UTF8Encoding]::new($false))
+  if (-not $uriLineFound) { $envLines += "MONGODB_URI=$uri" }
+  [IO.File]::WriteAllLines($envPath, $envLines, [Text.UTF8Encoding]::new($false))
   $uri = $null
   & npm.cmd install --include=dev
   if ($LASTEXITCODE -ne 0) { throw 'Dependency installation failed.' }
