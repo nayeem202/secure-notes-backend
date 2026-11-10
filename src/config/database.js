@@ -10,6 +10,7 @@ export async function connectDatabase(config, { verifyIndexes = true } = {}) {
   mongoose.set('bufferCommands', false);
   mongoose.set('maxTimeMS', config.QUERY_TIMEOUT_MS);
   await mongoose.connect(config.MONGODB_URI, {
+    family: 4,
     autoIndex: false,
     autoCreate: false,
     maxPoolSize: 20,
