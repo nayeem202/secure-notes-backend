@@ -1,0 +1,37 @@
+services:
+  - type: web
+    name: secure-notes-backend
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health/ready
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        value: 3000
+      - key: SERVE_FRONTEND
+        value: "false"
+      - key: AUTO_INDEX
+        value: "false"
+      - key: TRUST_PROXY_HOPS
+        value: "1"
+      - key: JWT_TTL_SECONDS
+        value: "900"
+      - key: BCRYPT_ROUNDS
+        value: "12"
+      - key: API_RATE_LIMIT
+        value: "300"
+      - key: AUTH_RATE_LIMIT
+        value: "20"
+      - key: QUERY_TIMEOUT_MS
+        value: "10000"
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: APP_ORIGIN
+        sync: false
