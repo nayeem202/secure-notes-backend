@@ -14,7 +14,12 @@ try {
   const servers = error.reason?.servers;
   const endpoints = servers instanceof Map
     ? [...servers].map(([address, server]) => `${address}=${server.error?.code ?? server.type}`).join(', ')
-    : '';
-  console.error('Index setup failed. Check Atlas network access and database permissions.', error.name, error.code ?? '', endpoints);
+    : undefined;
+  const safeMessage = String(error.message ?? '').replace(/mongodb(?:\+srv)?:\/\/[^\s]+/gi, '[connection string redacted]');
+  const details = {
+    name: error.name, code: error.code, address: error.address, port: error.port, syscall: error.syscall,
+    message: safeMessage, endpoints,
+  };
+  console.error('Index setup failed. Check Atlas network access and database permissions.', JSON.stringify(details));
   process.exitCode = 1;
 } finally { await disconnectDatabase(); }
