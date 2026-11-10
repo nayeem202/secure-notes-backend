@@ -1,10 +1,10 @@
-import '../src/config/load-env.js';
-import { loadConfig } from '../src/config/env.js';
-import { connectDatabase, assertRequiredIndexes, disconnectDatabase } from '../src/config/database.js';
+import '../src/bootstrap/load-env.js';
+import { loadConfig } from '../src/bootstrap/env.js';
+import { connectDatabase, assertRequiredIndexes, disconnectDatabase } from '../src/infrastructure/database/connection.js';
 
 let stage = 'configuration';
 try {
-  // Always read-only, even when the local environment enables AUTO_INDEX.
+
   const config = loadConfig({ ...process.env, AUTO_INDEX: 'false' });
   stage = 'connection';
   const connection = await connectDatabase(config, { verifyIndexes: false });
@@ -14,7 +14,7 @@ try {
   await assertRequiredIndexes();
   console.log('PASS: All required collections and indexes exist.');
 } catch (error) {
-  // Driver messages can contain credentials. Report only the stage and error code.
+
   console.error('Database check failed.', { stage, errorType: error.name, errorCode: error.code });
   const hints = {
     configuration: 'Set MONGODB_URI and a valid JWT_SECRET in the backend .env or environment.',

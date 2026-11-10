@@ -35,8 +35,8 @@ function requestStop() {
 async function main() {
   process.chdir(projectRoot);
   await prepareLocalEnvironment();
-  await import('../src/config/load-env.js');
-  const { loadConfig } = await import('../src/config/env.js');
+  await import('../src/bootstrap/load-env.js');
+  const { loadConfig } = await import('../src/bootstrap/env.js');
   const config = loadConfig();
   if (config.NODE_ENV === 'production') throw new LocalStartupError('This launcher is for local development. Use npm start for production.');
   const origin = new URL(config.APP_ORIGIN);

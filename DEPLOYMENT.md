@@ -49,3 +49,15 @@ Reply All to the exact original email thread within two days of receiving it. In
 - Live backend API base URL ending in `/api`
 
 Submit only after live checks pass; do not include placeholder URLs.
+
+## Interest-index upgrade
+
+Create the new `users_interests_id` compound index with `npm run db:indexes` before deploying the updated backend. Keep the old `users_interests` index during the rollout so the previous deployment can still start.
+
+After promoting and verifying the updated backend, run:
+
+```bash
+npm run db:indexes -- --retire-legacy-interest-index
+```
+
+This checks the replacement's key before removing only the known legacy index. Final application index count remains five; the compound prefix serves the previous interest-filter queries.

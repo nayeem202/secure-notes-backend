@@ -2,14 +2,15 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomBytes } from 'node:crypto';
 import jwt from 'jsonwebtoken';
-import { loadConfig } from '../src/config/env.js';
+import { loadConfig } from '../src/bootstrap/env.js';
 import { adminUpdateBody, allNotesQuery, interestQuery, loginBody, noteCreateBody, noteUpdateBody,
-  pageQuery, password, postCreateBody, registerBody } from '../src/validation/schemas.js';
-import { pageInfo } from '../src/utils/pagination.js';
-import { issueToken, verifyToken, readSessionCookie, cookieName, sessionCookieOptions } from '../src/utils/tokens.js';
-import { protectMutations } from '../src/middleware/security.js';
-import { authorize } from '../src/middleware/rbac.js';
-import { validate } from '../src/middleware/validate.js';
+  pageQuery, password, postCreateBody, registerBody } from '../src/interfaces/http/validation/schemas.js';
+import { pageInfo } from '../src/domain/pagination.js';
+import { issueToken, verifyToken } from '../src/infrastructure/security/tokens.js';
+import { readSessionCookie, cookieName, sessionCookieOptions } from '../src/interfaces/http/session.js';
+import { protectMutations } from '../src/interfaces/http/middleware/security.js';
+import { authorize } from '../src/interfaces/http/middleware/rbac.js';
+import { validate } from '../src/interfaces/http/middleware/validate.js';
 
 const environment = {
   NODE_ENV: 'test', JWT_SECRET: randomBytes(48).toString('hex'),

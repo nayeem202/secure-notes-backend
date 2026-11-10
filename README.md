@@ -17,7 +17,7 @@ Standalone Express REST API for Secure Notes. This is the backend project and Gi
 
 - Node.js 20.19 through 24.x (production: 24.x), Express 5, MongoDB, and Mongoose
 - JWT authentication with bcrypt password hashing
-- Routes, controllers, validation, middleware, services, models, and configuration are kept in separate `src/` modules
+- Clean Architecture separates domain policies, application use cases, infrastructure adapters, and HTTP adapters; see [ARCHITECTURE.md](ARCHITECTURE.md)
 - MongoDB transactions require a replica set; the supplied Docker Compose setup initializes one
 - `SERVE_FRONTEND=false` keeps this project API-only
 
@@ -111,7 +111,9 @@ Base URL: `http://localhost:3000/api`.
 | GET | `/admin/notes` | Admin; paginated, optional `owner=<username>` |
 | GET | `/admin/analytics/interests` | Admin; paginated interest groups |
 
-Every list endpoint accepts `page` and `limit`; default page is 1, default limit is 10, and maximum limit is 100. Usernames are 3–30 characters, normalized to lowercase, and unique. Duplicate usernames return HTTP 409.
+Every list endpoint accepts `page` and `limit`; default page is 1, default limit is 10, and maximum limit is 100. Interest groups also accept `memberPage` and `memberLimit` with the same defaults/limit for usernames within each group. Usernames are 3–30 characters, normalized to lowercase, and unique. Duplicate usernames return HTTP 409.
+
+The public `/api/users/:username/posts` response contains only `user: { username }`, public posts, and pagination. Names, email addresses, interests, roles, and authentication fields are excluded.
 
 The frontend uses the short-lived access token in an `Authorization: Bearer` header. Tokens stay in memory and are not written to browser storage; a separately hosted frontend asks the user to sign in again after a reload. CORS and write-origin validation allow only the exact `APP_ORIGIN`.
 

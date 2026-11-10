@@ -1,8 +1,8 @@
-import './src/config/load-env.js';
+import './src/bootstrap/load-env.js';
 import { createApp } from './src/app.js';
-import { loadConfig } from './src/config/env.js';
-import { connectDatabase, disconnectDatabase } from './src/config/database.js';
-import { logger } from './src/utils/logger.js';
+import { loadConfig } from './src/bootstrap/env.js';
+import { connectDatabase, disconnectDatabase } from './src/infrastructure/database/connection.js';
+import { logger } from './src/infrastructure/observability/logger.js';
 
 let config;
 try { config = loadConfig(); } catch (error) {

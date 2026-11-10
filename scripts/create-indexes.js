@@ -1,10 +1,11 @@
-import '../src/config/load-env.js';
-import { loadConfig } from '../src/config/env.js';
-import { connectDatabase, createIndexes, disconnectDatabase, models } from '../src/config/database.js';
+import '../src/bootstrap/load-env.js';
+import { loadConfig } from '../src/bootstrap/env.js';
+import { connectDatabase, createIndexes, disconnectDatabase, models, retireLegacyInterestIndex } from '../src/infrastructure/database/connection.js';
 
 try {
   await connectDatabase({ ...loadConfig(), AUTO_INDEX: false }, { verifyIndexes: false });
   await createIndexes();
+  if (process.argv.includes('--retire-legacy-interest-index')) await retireLegacyInterestIndex();
   for (const Model of models) {
     console.log(Model.collection.name, (await Model.collection.indexes()).map(index => ({
       name: index.name, key: index.key, unique: Boolean(index.unique),

@@ -1,10 +1,10 @@
-import '../src/config/load-env.js';
-import { loadConfig } from '../src/config/env.js';
-import { connectDatabase, disconnectDatabase } from '../src/config/database.js';
-import { User } from '../src/models/User.js';
-import { Note } from '../src/models/Note.js';
-import { Post } from '../src/models/Post.js';
-import { interestsPipeline, userPostsPipeline } from '../src/services/aggregation-pipelines.js';
+import '../src/bootstrap/load-env.js';
+import { loadConfig } from '../src/bootstrap/env.js';
+import { connectDatabase, disconnectDatabase } from '../src/infrastructure/database/connection.js';
+import { User } from '../src/infrastructure/database/models/User.js';
+import { Note } from '../src/infrastructure/database/models/Note.js';
+import { Post } from '../src/infrastructure/database/models/Post.js';
+import { interestsPipeline, userPostsPipeline } from '../src/infrastructure/database/aggregation-pipelines.js';
 
 try {
   await connectDatabase({ ...loadConfig(), AUTO_INDEX: false });

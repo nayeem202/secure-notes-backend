@@ -3,11 +3,12 @@ import assert from 'node:assert/strict';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import request from 'supertest';
-import { User } from '../src/models/User.js';
-import { Note } from '../src/models/Note.js';
-import { Post } from '../src/models/Post.js';
+import { User } from '../src/infrastructure/database/models/User.js';
+import { Note } from '../src/infrastructure/database/models/Note.js';
+import { Post } from '../src/infrastructure/database/models/Post.js';
 import { createApp } from '../src/app.js';
-import { userPostsPipeline, interestsPipeline } from '../src/services/aggregation-pipelines.js';
+import { retireLegacyInterestIndex } from '../src/infrastructure/database/connection.js';
+import { userPostsPipeline, interestsPipeline } from '../src/infrastructure/database/aggregation-pipelines.js';
 import { fixtureUsers, silentLogger, testEnvironment, testPassword } from './helpers.js';
 
 let env;
@@ -155,18 +156,31 @@ test('posts are public while write access remains author-only', async () => {
   await as('alice', 'delete', `/api/posts/${id}`).expect(204);
 });
 
-test('interest grouping uses exactly one aggregate with totals and normalized exact filtering', async t => {
+test('interest grouping uses one aggregate with paginated groups and paginated users', async t => {
   const original = User.aggregate;
   const aggregate = t.mock.method(User, 'aggregate', function (...args) { return original.apply(this, args); });
   for (const method of ['find', 'countDocuments', 'distinct']) t.mock.method(User, method, () => { throw new Error('Extra query forbidden'); });
   const result = await as('admin', 'get', '/api/admin/analytics/interests?page=2&limit=1').expect(200);
   assert.equal(aggregate.mock.callCount(), 1);
-  assert.deepEqual(result.body.data, [{ userCount: 1, interest: 'reading' }]);
   assert.equal(result.body.pagination.total, 2);
-  const exact = await as('admin', 'get', '/api/admin/analytics/interests?interest=CHESS').expect(200);
-  assert.deepEqual(exact.body.data, [{ userCount: 2, interest: 'chess' }]);
+  assert.equal(result.body.data[0].interest, 'reading');
+  assert.equal(result.body.data[0].userCount, 1);
+  assert.deepEqual(result.body.data[0].users, [{ username: 'alice.reader' }]);
+  const exact = await as('admin', 'get', '/api/admin/analytics/interests?interest=CHESS&memberLimit=1').expect(200);
+  assert.equal(exact.body.data[0].interest, 'chess');
+  assert.equal(exact.body.data[0].userCount, 2);
+  assert.equal(exact.body.data[0].users.length, 1);
+  assert.equal(exact.body.data[0].usersPagination.hasNextPage, true);
+  const next = await as('admin', 'get', '/api/admin/analytics/interests?interest=chess&memberPage=2&memberLimit=1').expect(200);
+  assert.equal(next.body.data[0].users.length, 1);
+  assert.notEqual(next.body.data[0].users[0].username, exact.body.data[0].users[0].username);
+  const beyond = await as('admin', 'get', '/api/admin/analytics/interests?interest=chess&memberPage=3&memberLimit=1').expect(200);
+  assert.equal(beyond.body.data[0].userCount, 2);
+  assert.deepEqual(beyond.body.data[0].users, []);
   const empty = await as('admin', 'get', '/api/admin/analytics/interests?interest=unknown').expect(200);
   assert.deepEqual(empty.body.data, []); assert.equal(empty.body.pagination.total, 0);
+  await as('admin', 'get', '/api/admin/analytics/interests?memberLimit=101').expect(400);
+  await as('admin', 'get', '/api/admin/analytics/interests?memberPage=100001&memberLimit=100').expect(400);
   await as('alice', 'get', '/api/admin/analytics/interests').expect(403);
 });
 
@@ -181,7 +195,8 @@ test('user posts use one aggregate and lookup with pagination, safe user fields,
   assert.equal(response.body.pagination.total, 3);
   const sortedIds = posts.map(item => String(item._id)).sort().reverse();
   assert.deepEqual(response.body.data.map(item => item._id), [sortedIds[2]]);
-  assert.deepEqual(Object.keys(response.body.user).sort(), ['interests', 'name', 'username']);
+  assert.deepEqual(Object.keys(response.body.user).sort(), ['username']);
+  assert.deepEqual(Object.keys(response.body.data[0].author).sort(), ['_id', 'username']);
   const pipeline = aggregate.mock.calls[0].arguments[0];
   assert.equal(pipeline.filter(stage => stage.$lookup).length, 1);
   const empty = await request(env.app).get(`/api/users/${users.admin.user.username}/posts`).expect(200);
@@ -288,9 +303,17 @@ test('malformed JSON, oversized bodies, and unknown routes use safe errors', asy
   assert.equal(missing.body.error.stack, undefined);
 });
 
-test('only the five declared indexes exist, and explain shows indexes supporting the query shapes', async () => {
+test('legacy interest index is retired after the compound replacement exists', async () => {
+  await User.collection.createIndex({ interests: 1 }, { name: 'users_interests' });
+  await retireLegacyInterestIndex();
+  const indexes = await User.collection.indexes();
+  assert.equal(indexes.some(index => index.name === 'users_interests'), false);
+  assert.ok(indexes.some(index => index.name === 'users_interests_id'));
+});
+
+test('only the five required schema indexes exist, and explain shows indexes supporting the query shapes', async () => {
   for (const [Model, names] of [
-    [User, ['_id_', 'users_email_unique', 'users_username_unique', 'users_interests']],
+    [User, ['_id_', 'users_email_unique', 'users_username_unique', 'users_interests_id']],
     [Note, ['_id_', 'notes_owner_id']], [Post, ['_id_', 'posts_author_id']],
   ]) assert.deepEqual((await Model.collection.indexes()).map(item => item.name).sort(), names.sort());
   await note();
@@ -300,7 +323,7 @@ test('only the five declared indexes exist, and explain shows indexes supporting
   const usersPlan = await User.find({}).sort({ _id: -1 }).limit(10).explain('executionStats');
   assert.ok(JSON.stringify(usersPlan.queryPlanner.winningPlan).includes('_id_'));
   const interestPlan = await User.aggregate(interestsPipeline({ page: 1, limit: 10, interest: 'reading' })).explain('executionStats');
-  assert.ok(JSON.stringify(interestPlan).includes('users_interests'));
+  assert.ok(JSON.stringify(interestPlan).includes('users_interests_id'));
   const lookupPlan = await User.aggregate(userPostsPipeline(users.alice.user.username, { page: 1, limit: 10 })).explain('executionStats');
   assert.ok(JSON.stringify(lookupPlan).includes('posts_author_id'));
 });

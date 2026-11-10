@@ -1,5 +1,16 @@
 # Verification record
 
+## Current refactor
+
+- 45 backend tests pass, including use-case boundaries, role/ownership checks, aggregation call counts, member pagination, legacy-index retirement, and explain plans.
+- 65 JavaScript files pass syntax/import checks.
+- Source-comment scan reports zero comments across both repositories.
+- Local Chrome checks pass for username-only public lookup and interest-member next/previous pagination.
+- The member lookup explain plan uses `users_interests_id`.
+- Production rollout for this revision is recorded below once verified.
+
+## Previous production baseline
+
 Verified on 2026-11-10 in the supplied Linux workspace and the live Vercel production deployment.
 
 ## Production
