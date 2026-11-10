@@ -116,11 +116,10 @@ The integration suite uses an isolated in-memory MongoDB replica set. The browse
 
 ## Deploy backend
 
-This repository includes `render.yaml` for a free Docker Web Service with `/health/ready` health checks. Create a MongoDB Atlas Free cluster and database user first. Add your computer's current public IP to the Atlas IP access list, put the Atlas connection string in this project's local `.env`, then initialize the required indexes before the first backend deployment:
+This repository includes `render.yaml` for a free Docker Web Service with `/health/ready` health checks. Create a MongoDB Atlas Free cluster and database user first. Add your computer's current public IP to the Atlas IP access list, then run the Windows helper from PowerShell. It securely prompts for the database password, writes the Atlas URI to the ignored local `.env`, installs dependencies, and initializes the required indexes:
 
 ```powershell
-npm.cmd install --include=dev
-npm.cmd run db:indexes
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup-atlas-windows.ps1
 ```
 
 The index command also backfills usernames for existing accounts. The application requires these indexes at startup and runs with `AUTO_INDEX=false` in production. Render Free does not provide a pre-deploy command, so run this once from your computer. After creating the Render service, add its outbound IP ranges from the service's Outbound tab to the Atlas IP access list. Keep only the required trusted ranges; remove your temporary computer IP afterward if you do not need local database access.
