@@ -7,7 +7,7 @@ export function createTransactions(queryTimeoutMs) {
     async run(work) {
       try {
         return await mongoose.connection.transaction(
-          session => work(createRepositories({ session, queryTimeoutMs })),
+          (session) => work(createRepositories({ session, queryTimeoutMs })),
           {
             readPreference: 'primary',
             readConcern: { level: 'snapshot' },
@@ -15,7 +15,9 @@ export function createTransactions(queryTimeoutMs) {
             maxCommitTimeMS: 10000,
           },
         );
-      } catch (error) { throw persistenceError(error); }
+      } catch (error) {
+        throw persistenceError(error);
+      }
     },
   };
 }

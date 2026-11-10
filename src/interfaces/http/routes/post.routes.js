@@ -11,7 +11,12 @@ export function postRoutes({ config, useCases }) {
   router.get('/', validate({ query: pageQuery }), controller.list);
   router.get('/:id', validate({ params: idParams }), controller.get);
   router.post('/', signedIn, validate({ body: postCreateBody }), controller.create);
-  router.patch('/:id', signedIn, validate({ params: idParams, body: postUpdateBody }), controller.update);
+  router.patch(
+    '/:id',
+    signedIn,
+    validate({ params: idParams, body: postUpdateBody }),
+    controller.update,
+  );
   router.delete('/:id', signedIn, validate({ params: idParams }), controller.remove);
   return router;
 }

@@ -7,14 +7,22 @@ import { interestQuery, pageQuery, usernameParams } from '../validation/schemas.
 
 export function analyticsRoutes({ config, useCases }) {
   const router = Router();
-  router.get('/interests', authenticate({ config, auth: useCases.auth }), authorize('admin'),
-    validate({ query: interestQuery }), aggregationController(useCases.analytics).interests);
+  router.get(
+    '/interests',
+    authenticate({ config, auth: useCases.auth }),
+    authorize('admin'),
+    validate({ query: interestQuery }),
+    aggregationController(useCases.analytics).interests,
+  );
   return router;
 }
 
 export function publicUserRoutes({ useCases }) {
   const router = Router();
-  router.get('/:username/posts', validate({ params: usernameParams, query: pageQuery }),
-    aggregationController(useCases.analytics).userPosts);
+  router.get(
+    '/:username/posts',
+    validate({ params: usernameParams, query: pageQuery }),
+    aggregationController(useCases.analytics).userPosts,
+  );
   return router;
 }

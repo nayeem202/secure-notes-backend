@@ -25,6 +25,10 @@ export function createContainer(config) {
       users: createUserUseCases(dependencies),
       analytics: createAnalyticsUseCases(dependencies),
     },
-    repositories, passwords, tokens, health: databaseReady, logger,
+    repositories,
+    passwords,
+    tokens,
+    health: databaseReady,
+    logger,
   };
 }

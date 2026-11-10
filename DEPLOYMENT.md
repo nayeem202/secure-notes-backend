@@ -11,16 +11,16 @@ Deploy these as separate projects. Push reviewed local changes before using Git-
 
 Use Framework Preset **Other** and Node.js 24. The included `vercel.json` deploys `api/index.js` and forwards API and health routes to it. Set these production variables before deployment:
 
-| Variable | Value |
-| --- | --- |
-| `NODE_ENV` | `production` |
-| `MONGODB_URI` | Actual Atlas URI with `/secure_notes` as the database |
-| `JWT_SECRET` | Private random secret of at least 48 characters |
-| `APP_ORIGIN` | Exact HTTPS frontend production origin, without a trailing slash |
-| `API_ORIGIN` | Exact HTTPS backend production origin for Swagger UI and write-origin checks |
-| `SERVE_FRONTEND` | `false` |
-| `AUTO_INDEX` | `false` |
-| `TRUST_PROXY_HOPS` | `1` |
+| Variable           | Value                                                                        |
+| ------------------ | ---------------------------------------------------------------------------- |
+| `NODE_ENV`         | `production`                                                                 |
+| `MONGODB_URI`      | Actual Atlas URI with `/secure_notes` as the database                        |
+| `JWT_SECRET`       | Private random secret of at least 48 characters                              |
+| `APP_ORIGIN`       | Exact HTTPS frontend production origin, without a trailing slash             |
+| `API_ORIGIN`       | Exact HTTPS backend production origin for Swagger UI and write-origin checks |
+| `SERVE_FRONTEND`   | `false`                                                                      |
+| `AUTO_INDEX`       | `false`                                                                      |
+| `TRUST_PROXY_HOPS` | `1`                                                                          |
 
 Store credentials as sensitive/encrypted Vercel variables, never in frontend files. Run `npm run db:indexes` against Atlas once, then `npm run db:check`. Required indexes must exist before serving traffic.
 

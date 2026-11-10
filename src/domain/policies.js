@@ -6,7 +6,8 @@ export function requireActor(actor) {
 
 export function requireAdmin(actor) {
   requireActor(actor);
-  if (actor.role !== 'admin') throw new ApplicationError('FORBIDDEN', 'Administrator access is required');
+  if (actor.role !== 'admin')
+    throw new ApplicationError('FORBIDDEN', 'Administrator access is required');
 }
 
 export function isSameUser(actor, id) {
@@ -15,6 +16,9 @@ export function isSameUser(actor, id) {
 
 export function protectAdministrator(actor, id, changes) {
   if (isSameUser(actor, id) && (changes.role === 'user' || changes.isActive === false)) {
-    throw new ApplicationError('SELF_PROTECTION', 'Administrators cannot demote or deactivate their own account');
+    throw new ApplicationError(
+      'SELF_PROTECTION',
+      'Administrators cannot demote or deactivate their own account',
+    );
   }
 }

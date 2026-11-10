@@ -1,11 +1,15 @@
 import { ApiError } from '../api-error.js';
 
-export const protectMutations = config => (req, res, next) => {
+export const protectMutations = (config) => (req, res, next) => {
   if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next();
   const origin = req.get('origin');
-  const trustedOrigin = origin === config.APP_ORIGIN || Boolean(config.API_ORIGIN && origin === config.API_ORIGIN);
+  const trustedOrigin =
+    origin === config.APP_ORIGIN || Boolean(config.API_ORIGIN && origin === config.API_ORIGIN);
 
-  if ((origin && !trustedOrigin) || (!trustedOrigin && req.get('sec-fetch-site') === 'cross-site')) {
+  if (
+    (origin && !trustedOrigin) ||
+    (!trustedOrigin && req.get('sec-fetch-site') === 'cross-site')
+  ) {
     throw new ApiError(403, 'CSRF_REJECTED', 'Cross-origin writes are not allowed');
   }
 

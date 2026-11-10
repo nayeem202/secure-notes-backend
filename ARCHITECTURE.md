@@ -4,13 +4,13 @@ The backend uses a lightweight Clean Architecture in plain JavaScript. Business 
 
 ## Layers
 
-| Directory | Responsibility | Dependencies |
-| --- | --- | --- |
-| `src/domain` | Access policies, application errors, pagination rules | Domain only |
-| `src/application` | Authentication, notes, posts, user management, aggregation use cases | Application and domain |
-| `src/infrastructure` | Mongoose repositories/models, transactions, aggregation pipelines, bcrypt, JWT, logging | Application contracts and domain |
-| `src/interfaces/http` | Express routes/controllers, request validation, cookies, HTTP error/status mapping | Application and domain |
-| `src/bootstrap` | Environment validation and dependency composition | Assembles all adapters and use cases |
+| Directory             | Responsibility                                                                          | Dependencies                         |
+| --------------------- | --------------------------------------------------------------------------------------- | ------------------------------------ |
+| `src/domain`          | Access policies, application errors, pagination rules                                   | Domain only                          |
+| `src/application`     | Authentication, notes, posts, user management, aggregation use cases                    | Application and domain               |
+| `src/infrastructure`  | Mongoose repositories/models, transactions, aggregation pipelines, bcrypt, JWT, logging | Application contracts and domain     |
+| `src/interfaces/http` | Express routes/controllers, request validation, cookies, HTTP error/status mapping      | Application and domain               |
+| `src/bootstrap`       | Environment validation and dependency composition                                       | Assembles all adapters and use cases |
 
 `src/app.js` is the composition entrypoint shared by the local server and Vercel.
 
@@ -56,13 +56,13 @@ A write use case calls the transaction port. It locks the current active account
 
 All five application indexes are declared with `schema.index()` in `src/infrastructure/database/models`.
 
-| Index | Queries it supports |
-| --- | --- |
-| `users_email_unique` | Unique registration and email login |
-| `users_username_unique` | Unique usernames, username login, public user-post lookup |
-| `users_interests_id` | Exact-interest filtering and deterministic member pagination inside each interest group |
-| `notes_owner_id` | Owner notes ordered by ID, owner counts, cascading deletion |
-| `posts_author_id` | A user's posts ordered by ID, correlated lookup, cascading deletion |
+| Index                   | Queries it supports                                                                     |
+| ----------------------- | --------------------------------------------------------------------------------------- |
+| `users_email_unique`    | Unique registration and email login                                                     |
+| `users_username_unique` | Unique usernames, username login, public user-post lookup                               |
+| `users_interests_id`    | Exact-interest filtering and deterministic member pagination inside each interest group |
+| `notes_owner_id`        | Owner notes ordered by ID, owner counts, cascading deletion                             |
+| `posts_author_id`       | A user's posts ordered by ID, correlated lookup, cascading deletion                     |
 
 MongoDB's built-in `_id_` indexes serve single-record reads and global user/note/post lists. No duplicate `_id`, standalone owner/author, or timestamp indexes are added.
 

@@ -1,7 +1,7 @@
 services:
   mongo:
     image: mongo:8.0
-    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    command: ['mongod', '--replSet', 'rs0', '--bind_ip_all']
     volumes:
       - windows-mongo-data:/data/db
     healthcheck:
@@ -23,13 +23,13 @@ services:
     environment:
       NODE_ENV: development
       HOST: 0.0.0.0
-      PORT: "3000"
+      PORT: '3000'
       APP_ORIGIN: ${APP_ORIGIN:-http://localhost:5500}
       API_ORIGIN: http://localhost:${PORT:-3000}
       MONGODB_URI: mongodb://mongo:27017/secure_notes?replicaSet=rs0
-      AUTO_INDEX: "true"
+      AUTO_INDEX: 'true'
     ports:
-      - "127.0.0.1:${PORT:-3000}:3000"
+      - '127.0.0.1:${PORT:-3000}:3000'
     depends_on:
       mongo:
         condition: service_healthy

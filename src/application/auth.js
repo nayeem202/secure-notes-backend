@@ -3,10 +3,10 @@ import { requireActor } from '../domain/policies.js';
 import { prepareUser } from './prepare-user.js';
 import { serializeUser } from './serializers.js';
 
-const fitsPasswordLimit = value => new TextEncoder().encode(value).byteLength <= 72;
+const fitsPasswordLimit = (value) => new TextEncoder().encode(value).byteLength <= 72;
 
 export function createAuthUseCases({ repositories, passwords, tokens, accountWrite }) {
-  const sessionFor = user => ({
+  const sessionFor = (user) => ({
     user: serializeUser(user),
     accessToken: tokens.issue(user),
     expiresIn: tokens.expiresIn,
@@ -31,7 +31,9 @@ export function createAuthUseCases({ repositories, passwords, tokens, accountWri
     async authenticate(token) {
       if (!token) throw new ApplicationError('UNAUTHORIZED', 'Sign in to continue');
       let payload;
-      try { payload = tokens.verify(token); } catch {
+      try {
+        payload = tokens.verify(token);
+      } catch {
         throw new ApplicationError('UNAUTHORIZED', 'Session is invalid or expired');
       }
       const user = await repositories.users.findSessionUser(payload.sub);
@@ -45,21 +47,27 @@ export function createAuthUseCases({ repositories, passwords, tokens, accountWri
       return serializeUser(actor);
     },
     async updateProfile(actor, changes) {
-      const user = await accountWrite(actor, scoped => scoped.users.update(actor._id, changes));
+      const user = await accountWrite(actor, (scoped) => scoped.users.update(actor._id, changes));
       return serializeUser(user);
     },
     async changePassword(actor, { currentPassword, newPassword }) {
       requireActor(actor);
       const current = await repositories.users.findPassword(actor._id);
-      if (!current || !fitsPasswordLimit(currentPassword) || !await passwords.compare(currentPassword, current.passwordHash)) {
+      if (
+        !current ||
+        !fitsPasswordLimit(currentPassword) ||
+        !(await passwords.compare(currentPassword, current.passwordHash))
+      ) {
         throw new ApplicationError('INVALID_PASSWORD', 'Current password is incorrect');
       }
       const passwordHash = await passwords.hash(newPassword);
-      const user = await accountWrite(actor, scoped => scoped.users.update(actor._id, { passwordHash }, { invalidateSessions: true }));
+      const user = await accountWrite(actor, (scoped) =>
+        scoped.users.update(actor._id, { passwordHash }, { invalidateSessions: true }),
+      );
       return sessionFor(user);
     },
     async logout(actor) {
-      await accountWrite(actor, scoped => scoped.users.revokeSessions(actor._id));
+      await accountWrite(actor, (scoped) => scoped.users.revokeSessions(actor._id));
     },
   };
 }

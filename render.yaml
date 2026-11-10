@@ -14,21 +14,21 @@ services:
       - key: PORT
         value: 3000
       - key: SERVE_FRONTEND
-        value: "false"
+        value: 'false'
       - key: AUTO_INDEX
-        value: "false"
+        value: 'false'
       - key: TRUST_PROXY_HOPS
-        value: "1"
+        value: '1'
       - key: JWT_TTL_SECONDS
-        value: "900"
+        value: '900'
       - key: BCRYPT_ROUNDS
-        value: "12"
+        value: '12'
       - key: API_RATE_LIMIT
-        value: "300"
+        value: '300'
       - key: AUTH_RATE_LIMIT
-        value: "20"
+        value: '20'
       - key: QUERY_TIMEOUT_MS
-        value: "10000"
+        value: '10000'
       - key: MONGODB_URI
         sync: false
       - key: JWT_SECRET

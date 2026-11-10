@@ -6,10 +6,31 @@ import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('..', import.meta.url));
 async function files(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
-  return (await Promise.all(entries.filter(entry => !['node_modules', '.git', '.cache', '.local', 'test-results'].includes(entry.name))
-    .map(entry => entry.isDirectory() ? files(resolve(directory, entry.name)) : resolve(directory, entry.name)))).flat();
+  return (
+    await Promise.all(
+      entries
+        .filter(
+          (entry) =>
+            ![
+              'node_modules',
+              '.git',
+              '.cache',
+              '.local',
+              '.vercel',
+              'coverage',
+              'test-results',
+              'playwright-report',
+            ].includes(entry.name),
+        )
+        .map((entry) =>
+          entry.isDirectory()
+            ? files(resolve(directory, entry.name))
+            : resolve(directory, entry.name),
+        ),
+    )
+  ).flat();
 }
-const scripts = (await files(root)).filter(file => file.endsWith('.js'));
+const scripts = (await files(root)).filter((file) => file.endsWith('.js'));
 for (const file of scripts) {
   const check = spawnSync(process.execPath, ['--check', file], { encoding: 'utf8' });
   if (check.status !== 0) throw new Error(check.stderr || `Syntax check failed: ${file}`);
@@ -20,7 +41,8 @@ for (const file of scripts) {
 }
 try {
   const html = await readFile(resolve(root, 'public/index.html'), 'utf8');
-  for (const match of html.matchAll(/(?:src|href)="(\/[^"?#]+)"/g)) await access(resolve(root, `public${match[1]}`));
+  for (const match of html.matchAll(/(?:src|href)="(\/[^"?#]+)"/g))
+    await access(resolve(root, `public${match[1]}`));
 } catch (error) {
   if (error.code !== 'ENOENT') throw error;
 }

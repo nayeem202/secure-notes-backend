@@ -10,8 +10,7 @@ let connection;
 
 export default async function handler(req, res) {
   try {
-
-    connection ??= connectDatabase(config).catch(error => {
+    connection ??= connectDatabase(config).catch((error) => {
       connection = undefined;
       throw error;
     });
@@ -19,9 +18,14 @@ export default async function handler(req, res) {
   } catch (error) {
     logger.error('database_unavailable', { errorType: error.name, errorCode: error.code });
     res.writeHead(503, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
-    return res.end(JSON.stringify({ error: {
-      code: 'SERVICE_UNAVAILABLE', message: 'Database is temporarily unavailable',
-    } }));
+    return res.end(
+      JSON.stringify({
+        error: {
+          code: 'SERVICE_UNAVAILABLE',
+          message: 'Database is temporarily unavailable',
+        },
+      }),
+    );
   }
   return app(req, res);
 }

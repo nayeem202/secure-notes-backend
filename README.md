@@ -4,15 +4,15 @@ Express REST API for a secure note-taking application, with MongoDB/Mongoose, JW
 
 ## Live project
 
-| Resource | URL |
-| --- | --- |
-| Website | [Secure Notes](https://secure-notes-frontend-rho.vercel.app) |
-| Backend API base | `https://secure-notes-backend-delta.vercel.app/api` |
-| Interactive API documentation | [Swagger UI](https://secure-notes-backend-delta.vercel.app/docs) |
-| OpenAPI document | [openapi.json](https://secure-notes-backend-delta.vercel.app/openapi.json) |
-| Public API example | [GET /api/posts](https://secure-notes-backend-delta.vercel.app/api/posts) |
-| Database readiness | [GET /health/ready](https://secure-notes-backend-delta.vercel.app/health/ready) |
-| Frontend repository | [nayeem202/secure-notes-frontend](https://github.com/nayeem202/secure-notes-frontend) |
+| Resource                      | URL                                                                                   |
+| ----------------------------- | ------------------------------------------------------------------------------------- |
+| Website                       | [Secure Notes](https://secure-notes-frontend-rho.vercel.app)                          |
+| Backend API base              | `https://secure-notes-backend-delta.vercel.app/api`                                   |
+| Interactive API documentation | [Swagger UI](https://secure-notes-backend-delta.vercel.app/docs)                      |
+| OpenAPI document              | [openapi.json](https://secure-notes-backend-delta.vercel.app/openapi.json)            |
+| Public API example            | [GET /api/posts](https://secure-notes-backend-delta.vercel.app/api/posts)             |
+| Database readiness            | [GET /health/ready](https://secure-notes-backend-delta.vercel.app/health/ready)       |
+| Frontend repository           | [nayeem202/secure-notes-frontend](https://github.com/nayeem202/secure-notes-frontend) |
 
 The website and API documentation are accessible without a Vercel account. The API base is a prefix: GET `/api` itself is not a route.
 
@@ -85,7 +85,7 @@ cd secure-notes-frontend
 npm run dev
 ```
 
-Use `npm.cmd` in Windows PowerShell if script execution policy blocks `npm.ps1`. The frontend has no package dependencies to install.
+Use `npm.cmd` in Windows PowerShell if script execution policy blocks `npm.ps1`. The frontend development server uses Node.js built-ins.
 
 Open `http://localhost:5500`. The API is at `http://localhost:3000/api`, and local Swagger UI is at `http://localhost:3000/docs`. Keep these local environment settings:
 
@@ -154,23 +154,23 @@ For the Windows launcher stack, use `docker --context desktop-linux compose -p s
 
 The local template is [.env.example](.env.example). `npm run setup:local` creates the ignored `.env` and generates a missing JWT secret.
 
-| Variable | Purpose |
-| --- | --- |
-| `NODE_ENV` | `development`, `test`, or `production` |
-| `HOST` / `PORT` | Host-process defaults: `127.0.0.1` / `3000`; containers bind internally to `0.0.0.0` |
-| `APP_ORIGIN` | Exact frontend origin; local template uses `http://localhost:5500` |
-| `API_ORIGIN` | Exact backend origin used by Swagger UI and write-origin checks; local default follows `PORT` |
-| `SERVE_FRONTEND` | Set `false` for the separate frontend |
-| `MONGODB_URI` | MongoDB replica-set or Atlas connection string |
-| `JWT_SECRET` | Private random secret of at least 48 characters |
-| `JWT_TTL_SECONDS` | Access-token lifetime; default `900` seconds |
-| `BCRYPT_ROUNDS` | Password work factor; default `12` |
-| `AUTO_INDEX` | `true` for local setup; `false` in production |
-| `TRUST_PROXY_HOPS` | Trusted proxy hops; local `0`, current Vercel deployment `1` |
-| `API_RATE_LIMIT` | Default `300` requests per minute per instance |
-| `AUTH_RATE_LIMIT` | Default `20` auth requests per 15 minutes per instance |
-| `QUERY_TIMEOUT_MS` | Database query timeout; default `10000` ms |
-| `BOOTSTRAP_ADMIN_*` | One-time administrator setup; optional name defaults to `Administrator` |
+| Variable            | Purpose                                                                                       |
+| ------------------- | --------------------------------------------------------------------------------------------- |
+| `NODE_ENV`          | `development`, `test`, or `production`                                                        |
+| `HOST` / `PORT`     | Host-process defaults: `127.0.0.1` / `3000`; containers bind internally to `0.0.0.0`          |
+| `APP_ORIGIN`        | Exact frontend origin; local template uses `http://localhost:5500`                            |
+| `API_ORIGIN`        | Exact backend origin used by Swagger UI and write-origin checks; local default follows `PORT` |
+| `SERVE_FRONTEND`    | Set `false` for the separate frontend                                                         |
+| `MONGODB_URI`       | MongoDB replica-set or Atlas connection string                                                |
+| `JWT_SECRET`        | Private random secret of at least 48 characters                                               |
+| `JWT_TTL_SECONDS`   | Access-token lifetime; default `900` seconds                                                  |
+| `BCRYPT_ROUNDS`     | Password work factor; default `12`                                                            |
+| `AUTO_INDEX`        | `true` for local setup; `false` in production                                                 |
+| `TRUST_PROXY_HOPS`  | Trusted proxy hops; local `0`, current Vercel deployment `1`                                  |
+| `API_RATE_LIMIT`    | Default `300` requests per minute per instance                                                |
+| `AUTH_RATE_LIMIT`   | Default `20` auth requests per 15 minutes per instance                                        |
+| `QUERY_TIMEOUT_MS`  | Database query timeout; default `10000` ms                                                    |
+| `BOOTSTRAP_ADMIN_*` | One-time administrator setup; optional name defaults to `Administrator`                       |
 
 Origins must have no path or trailing slash and use HTTPS in production. CORS permits the configured frontend origin; browser writes must come from the configured frontend or backend origin.
 
@@ -178,22 +178,22 @@ Origins must have no path or trailing slash and use HTTPS in production. CORS pe
 
 Paths below are relative to `/api`. Swagger UI includes request schemas, parameters, response schemas, and authentication controls.
 
-| Method | Endpoint | Access |
-| --- | --- | --- |
-| POST | `/auth/register` | Public; name, unique username, email, password |
-| POST | `/auth/login` | Public; either username or email, plus password |
-| GET, PATCH | `/auth/me` | Signed in; read/update own profile |
-| PATCH | `/auth/password` | Signed in; current and new password |
-| POST | `/auth/logout` | Signed in; revokes existing sessions |
-| GET, POST | `/notes` | Signed in; own notes |
-| GET, PATCH, DELETE | `/notes/:id` | Owner; administrators may read any note |
-| GET, POST | `/posts` | Public list; authenticated creation |
-| GET, PATCH, DELETE | `/posts/:id` | Public read; author changes |
-| GET | `/users/:username/posts` | Public username and posts only |
-| GET, POST | `/admin/users` | Administrator |
-| GET, PATCH, DELETE | `/admin/users/:id` | Administrator |
-| GET | `/admin/notes` | Administrator; optional `owner=<username>` |
-| GET | `/admin/analytics/interests` | Administrator; optional exact `interest` filter |
+| Method             | Endpoint                     | Access                                          |
+| ------------------ | ---------------------------- | ----------------------------------------------- |
+| POST               | `/auth/register`             | Public; name, unique username, email, password  |
+| POST               | `/auth/login`                | Public; either username or email, plus password |
+| GET, PATCH         | `/auth/me`                   | Signed in; read/update own profile              |
+| PATCH              | `/auth/password`             | Signed in; current and new password             |
+| POST               | `/auth/logout`               | Signed in; revokes existing sessions            |
+| GET, POST          | `/notes`                     | Signed in; own notes                            |
+| GET, PATCH, DELETE | `/notes/:id`                 | Owner; administrators may read any note         |
+| GET, POST          | `/posts`                     | Public list; authenticated creation             |
+| GET, PATCH, DELETE | `/posts/:id`                 | Public read; author changes                     |
+| GET                | `/users/:username/posts`     | Public username and posts only                  |
+| GET, POST          | `/admin/users`               | Administrator                                   |
+| GET, PATCH, DELETE | `/admin/users/:id`           | Administrator                                   |
+| GET                | `/admin/notes`               | Administrator; optional `owner=<username>`      |
+| GET                | `/admin/analytics/interests` | Administrator; optional exact `interest` filter |
 
 All lists accept `page` and `limit`: defaults 1/10, maximum limit 100, maximum offset 100000. Interest groups additionally accept `memberPage` and `memberLimit` with the same limits. Usernames are 3–30 characters, normalized to lowercase, and unique; duplicates return HTTP 409.
 
@@ -203,9 +203,12 @@ The standalone frontend stores bearer tokens in memory. Reloading it requires si
 
 ```bash
 npm ci --include=dev
-npm run check
-npm test
+npm run verify
 ```
+
+The verification command runs ESLint, Prettier checks, syntax/import checks, and the test suite. Use `npm run format` to apply formatting and `npm run lint:fix` for available automatic lint fixes.
+
+[CI](.github/workflows/ci.yml) runs the same verification on every push and pull request using Node.js 24. Actions are pinned to commit SHAs, workflow permissions are read-only, and the isolated test database needs no Atlas credentials.
 
 Tests cover application boundaries, authentication, ownership, administrator permissions, transactions, pagination, aggregations, indexes, and the OpenAPI contract. Integration tests start an isolated MongoDB replica set; the first run may download the MongoDB binary. Browser verification results are recorded in [VERIFICATION.md](VERIFICATION.md).
 

@@ -4,25 +4,25 @@ Verified on 2026-11-10 in the supplied Linux workspace and the live Vercel produ
 
 ## Production
 
-| Item | Result |
-| --- | --- |
-| Frontend | [Secure Notes](https://secure-notes-frontend-rho.vercel.app) |
-| Interactive API documentation | [Swagger UI](https://secure-notes-backend-delta.vercel.app/docs) |
-| OpenAPI contract | [openapi.json](https://secure-notes-backend-delta.vercel.app/openapi.json), OpenAPI 3.1, 26 operations |
-| API base | `https://secure-notes-backend-delta.vercel.app/api`; use `/api/posts` for a public read |
-| Readiness | [Backend readiness](https://secure-notes-backend-delta.vercel.app/health/ready) returns HTTP 200 and `{"status":"ready"}` in the final checks |
-| Hosting target | `secure-note-team`, production |
-| Backend runtime | Node.js 24.x, Mumbai (`bom1`), 30-second maximum request duration |
-| Backend deployed source | `903cbfc94014da0793950c6c6b90f2d0a45e5423` |
-| Frontend deployed source | `abc991043d0e4e5145a05928dcc19a4ca9e5c53f` |
-| Backend deployment | `dpl_8tJPfJn72s5N3SEyWWTQqQBuXqCg`, READY, promoted |
-| Frontend deployment | `dpl_Gk4hoHvkTJHKn16fUQCp8a7L6ELz`, READY, promoted |
-| Atlas | `secure_notes`: authentication, ping, replica-set topology, and required indexes passed |
-| Anonymous access | Frontend and readiness accessible without a Vercel session or bypass header |
-| CORS | Production frontend preflight returned HTTP 204 with the exact allowed origin |
-| Private data | Anonymous notes request returned application HTTP 401 |
-| Public user lookup | User object contains only `username`; public posts and pagination remain available |
-| Browser errors | No page errors during the Swagger and frontend reviewer verification |
+| Item                          | Result                                                                                                                                        |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Frontend                      | [Secure Notes](https://secure-notes-frontend-rho.vercel.app)                                                                                  |
+| Interactive API documentation | [Swagger UI](https://secure-notes-backend-delta.vercel.app/docs)                                                                              |
+| OpenAPI contract              | [openapi.json](https://secure-notes-backend-delta.vercel.app/openapi.json), OpenAPI 3.1, 26 operations                                        |
+| API base                      | `https://secure-notes-backend-delta.vercel.app/api`; use `/api/posts` for a public read                                                       |
+| Readiness                     | [Backend readiness](https://secure-notes-backend-delta.vercel.app/health/ready) returns HTTP 200 and `{"status":"ready"}` in the final checks |
+| Hosting target                | `secure-note-team`, production                                                                                                                |
+| Backend runtime               | Node.js 24.x, Mumbai (`bom1`), 30-second maximum request duration                                                                             |
+| Backend deployed source       | `903cbfc94014da0793950c6c6b90f2d0a45e5423`                                                                                                    |
+| Frontend deployed source      | `abc991043d0e4e5145a05928dcc19a4ca9e5c53f`                                                                                                    |
+| Backend deployment            | `dpl_8tJPfJn72s5N3SEyWWTQqQBuXqCg`, READY, promoted                                                                                           |
+| Frontend deployment           | `dpl_Gk4hoHvkTJHKn16fUQCp8a7L6ELz`, READY, promoted                                                                                           |
+| Atlas                         | `secure_notes`: authentication, ping, replica-set topology, and required indexes passed                                                       |
+| Anonymous access              | Frontend and readiness accessible without a Vercel session or bypass header                                                                   |
+| CORS                          | Production frontend preflight returned HTTP 204 with the exact allowed origin                                                                 |
+| Private data                  | Anonymous notes request returned application HTTP 401                                                                                         |
+| Public user lookup            | User object contains only `username`; public posts and pagination remain available                                                            |
+| Browser errors                | No page errors during the Swagger and frontend reviewer verification                                                                          |
 
 The API base is a prefix; GET `/api` itself is not a defined route.
 
@@ -85,18 +85,18 @@ Each collection also retains MongoDB's built-in `_id_` index. Index-set tests an
 
 ## Local checks
 
-| Check | Result |
-| --- | --- |
-| Backend test suite | 49 passing tests, including an isolated MongoDB 8.0.18 replica set |
-| Backend JavaScript | 69 files passed syntax and relative-import checks |
-| Frontend JavaScript | Syntax checks passed |
-| Source comments | Zero comments in tracked backend/frontend source and configuration files |
-| Public profile privacy | Username-only response asserted in application/API tests and production |
-| Transactions | Rollback, session revocation, and account-deletion race tests passed |
-| Aggregations | Single aggregate-call assertions, member pagination, and explain plans passed |
-| Production dependency audit | `npm audit --omit=dev --audit-level=high`: 0 vulnerabilities |
-| Build inputs | No private `.env` files in either deployment upload |
-| Native Windows / complete Docker launch | Not exercised by this run |
+| Check                                   | Result                                                                        |
+| --------------------------------------- | ----------------------------------------------------------------------------- |
+| Backend test suite                      | 49 passing tests, including an isolated MongoDB 8.0.18 replica set            |
+| Backend JavaScript                      | 70 files passed syntax and relative-import checks                             |
+| Frontend JavaScript                     | Syntax checks passed                                                          |
+| Source comments                         | Zero comments in tracked backend/frontend source and configuration files      |
+| Public profile privacy                  | Username-only response asserted in application/API tests and production       |
+| Transactions                            | Rollback, session revocation, and account-deletion race tests passed          |
+| Aggregations                            | Single aggregate-call assertions, member pagination, and explain plans passed |
+| Production dependency audit             | `npm audit --omit=dev --audit-level=high`: 0 vulnerabilities                  |
+| Build inputs                            | No private `.env` files in either deployment upload                           |
+| Native Windows / complete Docker launch | Not exercised by this run                                                     |
 
 ## Runtime observations
 
@@ -109,3 +109,13 @@ Secrets remain in Vercel Secret environment variables and the ignored local back
 The request limiter is per backend function instance; global enforcement across scaled instances would require a shared store.
 
 [Architecture](ARCHITECTURE.md), [requirement mapping](REQUIREMENTS.md), and [deployment instructions](DEPLOYMENT.md) provide the review and submission details. Later documentation-only commits do not change the deployed application code identified above.
+
+## Final quality tooling
+
+Both repositories provide `npm run verify`. The backend runs ESLint with zero warnings allowed, Prettier checks, syntax/import checks, and all 49 tests. The frontend runs ESLint, Prettier checks, and syntax checks.
+
+Each repository has a CI workflow for pushes, pull requests, and manual runs on Node.js 24. Third-party actions are pinned to commit SHAs and workflow permissions are read-only. Backend tests use an isolated MongoDB replica set and cache only its downloaded binary.
+
+Prettier was applied to supported source and configuration files. JavaScript AST comparison confirmed formatting preserved the existing code structure, apart from three reviewed lint cleanups: explicit null/undefined checks, a clearer test request helper, and an unused frontend callback argument. The syntax scanner also excludes generated build/output directories.
+
+Local verification passed in both repositories. GitHub Actions and the final production rollout are recorded after remote verification.

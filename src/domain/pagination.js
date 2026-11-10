@@ -7,7 +7,10 @@ export function pagination({ page, limit }) {
 export function pageInfo(total, { page, limit }) {
   const totalPages = Math.ceil(total / limit);
   return {
-    page, limit, total, totalPages,
+    page,
+    limit,
+    total,
+    totalPages,
     hasNextPage: page < totalPages,
     hasPreviousPage: page > 1,
   };

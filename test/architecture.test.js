@@ -7,8 +7,17 @@ import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('../src/', import.meta.url));
 async function sourceFiles(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
-  return (await Promise.all(entries.map(entry => entry.isDirectory()
-    ? sourceFiles(resolve(directory, entry.name)) : entry.name.endsWith('.js') ? [resolve(directory, entry.name)] : []))).flat();
+  return (
+    await Promise.all(
+      entries.map((entry) =>
+        entry.isDirectory()
+          ? sourceFiles(resolve(directory, entry.name))
+          : entry.name.endsWith('.js')
+            ? [resolve(directory, entry.name)]
+            : [],
+      ),
+    )
+  ).flat();
 }
 
 test('architecture dependencies point inward and HTTP adapters do not import persistence', async () => {
@@ -26,10 +35,15 @@ test('architecture dependencies point inward and HTTP adapters do not import per
     for (const match of source.matchAll(/(?:\bfrom\s*|\bimport\s*(?:\(\s*)?)['"]([^'"]+)['"]/g)) {
       const specifier = match[1];
       if (!specifier.startsWith('.')) {
-        assert.ok(!['domain', 'application'].includes(layer), `${path} imports external dependency ${specifier}`);
+        assert.ok(
+          !['domain', 'application'].includes(layer),
+          `${path} imports external dependency ${specifier}`,
+        );
         continue;
       }
-      const target = relative(root, resolve(dirname(file), specifier)).replaceAll('\\', '/').split('/')[0];
+      const target = relative(root, resolve(dirname(file), specifier))
+        .replaceAll('\\', '/')
+        .split('/')[0];
       assert.ok(allowed.includes(target), `${path} depends on outer layer ${specifier}`);
     }
   }

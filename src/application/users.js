@@ -3,7 +3,7 @@ import { isSameUser, protectAdministrator, requireAdmin } from '../domain/polici
 import { prepareUser } from './prepare-user.js';
 import { serializeUser } from './serializers.js';
 
-const requireUser = user => {
+const requireUser = (user) => {
   if (!user) throw new ApplicationError('NOT_FOUND', 'User not found');
   return user;
 };
@@ -21,7 +21,7 @@ export function createUserUseCases({ repositories, accountWrite, passwords, toke
     async create(actor, input) {
       requireAdmin(actor);
       const fields = await prepareUser(input, passwords);
-      const user = await accountWrite(actor, scoped => scoped.users.insert(fields));
+      const user = await accountWrite(actor, (scoped) => scoped.users.insert(fields));
       return serializeUser(user);
     },
     async update(actor, id, input) {
@@ -29,18 +29,27 @@ export function createUserUseCases({ repositories, accountWrite, passwords, toke
       protectAdministrator(actor, id, input);
       const { password, ...changes } = input;
       if (password !== undefined) changes.passwordHash = await passwords.hash(password);
-      const user = requireUser(await accountWrite(actor, scoped => scoped.users.update(id, changes, { invalidateSessions: true })));
+      const user = requireUser(
+        await accountWrite(actor, (scoped) =>
+          scoped.users.update(id, changes, { invalidateSessions: true }),
+        ),
+      );
       return {
         user: serializeUser(user),
-        ...(isSameUser(actor, id) ? { accessToken: tokens.issue(user), expiresIn: tokens.expiresIn } : {}),
+        ...(isSameUser(actor, id)
+          ? { accessToken: tokens.issue(user), expiresIn: tokens.expiresIn }
+          : {}),
       };
     },
     async remove(actor, id) {
       requireAdmin(actor);
       if (isSameUser(actor, id)) {
-        throw new ApplicationError('SELF_PROTECTION', 'Administrators cannot delete their own account');
+        throw new ApplicationError(
+          'SELF_PROTECTION',
+          'Administrators cannot delete their own account',
+        );
       }
-      await accountWrite(actor, async scoped => {
+      await accountWrite(actor, async (scoped) => {
         const user = requireUser(await scoped.users.remove(id));
         await scoped.notes.removeForOwner(user._id);
         await scoped.posts.removeForAuthor(user._id);
@@ -49,8 +58,15 @@ export function createUserUseCases({ repositories, accountWrite, passwords, toke
     async bootstrapAdmin(input) {
       const existing = await repositories.users.findByEmail(input.email);
       if (existing) {
-        if (existing.role !== 'admin' || !existing.isActive || existing.username !== input.username) {
-          throw new ApplicationError('CONFLICT', 'That email belongs to another account; use the admin API to manage it');
+        if (
+          existing.role !== 'admin' ||
+          !existing.isActive ||
+          existing.username !== input.username
+        ) {
+          throw new ApplicationError(
+            'CONFLICT',
+            'That email belongs to another account; use the admin API to manage it',
+          );
         }
         return { user: serializeUser(existing), created: false };
       }

@@ -12,7 +12,13 @@ export function authRoutes({ config, useCases }, authLimiter) {
   router.post('/login', authLimiter, validate({ body: loginBody }), controller.login);
   router.get('/me', signedIn, controller.me);
   router.patch('/me', signedIn, validate({ body: profileBody }), controller.updateProfile);
-  router.patch('/password', authLimiter, signedIn, validate({ body: passwordBody }), controller.changePassword);
+  router.patch(
+    '/password',
+    authLimiter,
+    signedIn,
+    validate({ body: passwordBody }),
+    controller.changePassword,
+  );
   router.post('/logout', signedIn, controller.logout);
   return router;
 }

@@ -14,7 +14,5 @@
       "destination": "/api/index"
     }
   ],
-  "regions": [
-    "bom1"
-  ]
+  "regions": ["bom1"]
 }

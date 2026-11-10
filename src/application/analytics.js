@@ -8,10 +8,11 @@ export function createAnalyticsUseCases({ repositories }) {
       requireAdmin(actor);
       const [result] = await repositories.reports.interests(query);
       return {
-        data: result.data.map(group => ({
+        data: result.data.map((group) => ({
           ...group,
           usersPagination: pageInfo(group.userCount, {
-            page: query.memberPage ?? 1, limit: query.memberLimit ?? 10,
+            page: query.memberPage ?? 1,
+            limit: query.memberLimit ?? 10,
           }),
         })),
         pagination: pageInfo(result.metadata[0]?.total ?? 0, query),
