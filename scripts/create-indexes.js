@@ -11,6 +11,10 @@ try {
     })));
   }
 } catch (error) {
-  console.error('Index setup failed. Check environment configuration and MongoDB permissions.', error.name, error.code ?? '');
+  const servers = error.reason?.servers;
+  const endpoints = servers instanceof Map
+    ? [...servers].map(([address, server]) => `${address}=${server.error?.code ?? server.type}`).join(', ')
+    : '';
+  console.error('Index setup failed. Check Atlas network access and database permissions.', error.name, error.code ?? '', endpoints);
   process.exitCode = 1;
 } finally { await disconnectDatabase(); }
