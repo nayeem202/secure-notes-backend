@@ -3,9 +3,17 @@
   "framework": null,
   "installCommand": "npm ci --omit=dev --no-audit --no-fund",
   "functions": {
-    "api/index.js": { "maxDuration": 30 }
+    "api/index.js": {
+      "maxDuration": 30
+    }
   },
   "rewrites": [
-    { "source": "/(.*)", "destination": "/api/index" }
+    {
+      "source": "/(.*)",
+      "destination": "/api/index"
+    }
+  ],
+  "regions": [
+    "bom1"
   ]
 }

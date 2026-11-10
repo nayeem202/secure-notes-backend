@@ -5,7 +5,7 @@
   "description": "Secure Notes REST API built with Express and MongoDB",
   "type": "module",
   "engines": {
-    "node": ">=20.19.0"
+    "node": ">=20.19.0 <25"
   },
   "config": {
     "mongodbMemoryServer": {

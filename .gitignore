@@ -8,3 +8,4 @@ playwright-report/
 .cache/
 .local/
 *.log
+.vercel/
