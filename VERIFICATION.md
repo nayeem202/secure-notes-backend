@@ -13,10 +13,10 @@ Verified on 2026-11-10 in the supplied Linux workspace and the live Vercel produ
 | Readiness                     | [Backend readiness](https://secure-notes-backend-delta.vercel.app/health/ready) returns HTTP 200 and `{"status":"ready"}` in the final checks |
 | Hosting target                | `secure-note-team`, production                                                                                                                |
 | Backend runtime               | Node.js 24.x, Mumbai (`bom1`), 30-second maximum request duration                                                                             |
-| Backend deployed source       | `903cbfc94014da0793950c6c6b90f2d0a45e5423`                                                                                                    |
-| Frontend deployed source      | `abc991043d0e4e5145a05928dcc19a4ca9e5c53f`                                                                                                    |
-| Backend deployment            | `dpl_8tJPfJn72s5N3SEyWWTQqQBuXqCg`, READY, promoted                                                                                           |
-| Frontend deployment           | `dpl_Gk4hoHvkTJHKn16fUQCp8a7L6ELz`, READY, promoted                                                                                           |
+| Backend deployed source       | `e5dfe6db9635a99b0576a96ac9fefd5eae23932e`                                                                                                    |
+| Frontend deployed source      | `d9033f382ca97b2638db4e8e7cd0cc062b66df8d`                                                                                                    |
+| Backend deployment            | `dpl_5bDoBmWdgoZk1AdNXWD6nxWvrwPT`, READY, promoted                                                                                           |
+| Frontend deployment           | `dpl_4ZXhZHt5pc2NuVZQEwu2itM1Ww5d`, READY, promoted                                                                                           |
 | Atlas                         | `secure_notes`: authentication, ping, replica-set topology, and required indexes passed                                                       |
 | Anonymous access              | Frontend and readiness accessible without a Vercel session or bypass header                                                                   |
 | CORS                          | Production frontend preflight returned HTTP 204 with the exact allowed origin                                                                 |
@@ -59,7 +59,7 @@ A fresh, unauthenticated production browser verified:
 
 The temporary Swagger test account and its data were removed. The dedicated reviewer administrator remains available for assessment; credentials are kept in the private submission draft outside both repositories.
 
-Both README files were checked against source and corrected: Linux secret initialization precedes container startup, current API values replace placeholder instructions, local setup covers the supplied launchers and Atlas, and documented automated checks match the package scripts. The frontend README update is commit `6ed6ceae0805fef4129c81fe6391fdca482e24be`; deployed frontend application files are unchanged.
+Both README files were checked against source and corrected: Linux secret initialization precedes container startup, current API values replace placeholder instructions, local setup covers the supplied launchers and Atlas, and documented automated checks match the package scripts. The frontend README update is commit `6ed6ceae0805fef4129c81fe6391fdca482e24be`; the later quality-tooling update formats frontend source without feature changes.
 
 ## Architecture, privacy, and pagination
 
@@ -89,6 +89,9 @@ Each collection also retains MongoDB's built-in `_id_` index. Index-set tests an
 | --------------------------------------- | ----------------------------------------------------------------------------- |
 | Backend test suite                      | 49 passing tests, including an isolated MongoDB 8.0.18 replica set            |
 | Backend JavaScript                      | 70 files passed syntax and relative-import checks                             |
+| ESLint                                  | Both repositories pass with zero warnings                                     |
+| Formatting                              | Both repositories pass Prettier checks                                        |
+| Hosted CI                               | Workflows configured; account-level runner restriction prevents execution     |
 | Frontend JavaScript                     | Syntax checks passed                                                          |
 | Source comments                         | Zero comments in tracked backend/frontend source and configuration files      |
 | Public profile privacy                  | Username-only response asserted in application/API tests and production       |
@@ -118,4 +121,9 @@ Each repository has a CI workflow for pushes, pull requests, and manual runs on 
 
 Prettier was applied to supported source and configuration files. JavaScript AST comparison confirmed formatting preserved the existing code structure, apart from three reviewed lint cleanups: explicit null/undefined checks, a clearer test request helper, and an unused frontend callback argument. The syntax scanner also excludes generated build/output directories.
 
-Local verification passed in both repositories. GitHub Actions and the final production rollout are recorded after remote verification.
+Local verification passed in both repositories. GitHub Actions accepted both workflows, but account-level runner restrictions prevented either job from executing any steps. Hosted CI results remain unverified until the account restriction is resolved and the workflows are rerun.
+
+- [Backend CI run](https://github.com/nayeem202/secure-notes-backend/actions/runs/42864905553)
+- [Frontend CI run](https://github.com/nayeem202/secure-notes-frontend/actions/runs/42864908330)
+
+The workflow runner is pinned to Ubuntu 24.04 to keep the MongoDB test environment stable during GitHub's Ubuntu runner migration. The application runtime is Node.js 24. Both staged production builds passed readiness and source-asset comparisons before promotion. After promotion, the full frontend browser flow and Swagger browser flow passed, including reviewer administrator access, public-profile privacy, private-note CRUD, posts, logout, and persisted data. All three temporary test accounts and their data were removed. Verification bypasses were revoked; the dedicated reviewer administrator remains available.

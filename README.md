@@ -208,7 +208,7 @@ npm run verify
 
 The verification command runs ESLint, Prettier checks, syntax/import checks, and the test suite. Use `npm run format` to apply formatting and `npm run lint:fix` for available automatic lint fixes.
 
-[CI](.github/workflows/ci.yml) runs the same verification on every push and pull request using Node.js 24. Actions are pinned to commit SHAs, workflow permissions are read-only, and the isolated test database needs no Atlas credentials.
+[CI](.github/workflows/ci.yml) is configured to run the same verification on every push and pull request using Node.js 24. Actions are pinned to commit SHAs, workflow permissions are read-only, and the isolated test database needs no Atlas credentials.
 
 Tests cover application boundaries, authentication, ownership, administrator permissions, transactions, pagination, aggregations, indexes, and the OpenAPI contract. Integration tests start an isolated MongoDB replica set; the first run may download the MongoDB binary. Browser verification results are recorded in [VERIFICATION.md](VERIFICATION.md).
 
