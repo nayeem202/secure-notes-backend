@@ -116,7 +116,7 @@ The integration suite uses an isolated in-memory MongoDB replica set. The browse
 
 ## Deploy backend
 
-This repository includes `render.yaml` for a free Docker Web Service with `/health/ready` health checks. Create a MongoDB Atlas Free cluster and database user first. Add your computer's current public IP to the Atlas IP access list. If the network blocks Node's SRV lookup, select the standard `mongodb://` connection string in Atlas. Then run the Windows helper from PowerShell. It securely prompts for the URI, writes it to the ignored local `.env`, installs dependencies, and initializes the required indexes:
+This repository includes `render.yaml` for a free Docker Web Service with `/health/ready` health checks. Create a MongoDB Atlas Free cluster and database user first and add your computer's current public IP to the Atlas IP access list. Then run the Windows helper from PowerShell. It securely prompts only for the database password, builds the standard `mongodb://` seed-list URI (avoiding blocked SRV DNS lookups), writes it to the ignored local `.env`, installs dependencies, and initializes the required indexes:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup-atlas-windows.ps1
