@@ -68,6 +68,33 @@ test('JWT validation rejects missing, tampered, expired, and wrong-algorithm tok
   ]) await request(env.app).get('/api/notes').set('Authorization', `Bearer ${token}`).expect(401);
 });
 
+test('a separately hosted frontend can preflight, register, log in, and manage notes', async () => {
+  const origin = 'https://candidate.netlify.app';
+  const app = createApp({ ...env.config, NODE_ENV: 'production', APP_ORIGIN: origin }, { logger: silentLogger });
+  const browser = (method, path, token) => {
+    const call = request(app)[method](path).set('Origin', origin).set('Sec-Fetch-Site', 'cross-site')
+      .set('X-CSRF-Protection', '1');
+    return token ? call.set('Authorization', `Bearer ${token}`) : call;
+  };
+  const preflight = await request(app).options('/api/auth/register').set('Origin', origin)
+    .set('Access-Control-Request-Method', 'POST')
+    .set('Access-Control-Request-Headers', 'content-type,x-csrf-protection').expect(204);
+  assert.equal(preflight.headers['access-control-allow-origin'], origin);
+  assert.match(preflight.headers['access-control-allow-headers'], /Authorization/);
+  const account = { name: 'Deployed User', username: 'deployed.user', email: 'deployed@example.com', password: testPassword };
+  const registered = await browser('post', '/api/auth/register').send(account).expect(201);
+  assert.equal(registered.headers['access-control-allow-origin'], origin);
+  const login = await browser('post', '/api/auth/login').send({ username: account.username, password: testPassword }).expect(200);
+  const token = login.body.data.accessToken;
+  const created = await browser('post', '/api/notes', token).send({ title: 'Deployed note' }).expect(201);
+  const path = `/api/notes/${created.body.data.note._id}`;
+  await browser('patch', path, token).send({ title: 'Updated note' }).expect(200);
+  await browser('delete', path, token).expect(204);
+  await request(app).post('/api/notes').set('Origin', 'https://untrusted.example')
+    .set('Sec-Fetch-Site', 'cross-site').set('Authorization', `Bearer ${token}`)
+    .send({ title: 'Blocked' }).expect(403);
+});
+
 test('note CRUD enforces ownership, and administrators can read but cannot edit other users notes', async () => {
   const created = await note(); const id = created.body.data.note._id;
   await as('alice', 'get', `/api/notes/${id}`).expect(200);

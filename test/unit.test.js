@@ -102,18 +102,21 @@ test('cookie parsing isolates the session name and tolerates malformed cookies',
   assert.equal(sessionCookieOptions(config).httpOnly, true);
 });
 
-test('mutation protection rejects missing CSRF headers, cross-site writes, and non-JSON bodies', () => {
+test('mutation protection allows the configured cross-site frontend and rejects untrusted writes', () => {
   const guard = protectMutations(config);
   const request = (headers = {}, method = 'POST', json = true) => ({ method, get: name => headers[name], is: () => json });
   assert.throws(() => guard(request(), {}, () => {}), error => error.status === 403);
   assert.throws(() => guard(request({ 'x-csrf-protection': '1', origin: 'https://evil.example' }), {}, () => {}), error => error.status === 403);
+  assert.throws(() => guard(request({ authorization: 'Bearer token', origin: 'https://evil.example', 'sec-fetch-site': 'cross-site' }), {}, () => {}), error => error.status === 403);
   assert.throws(() => guard(request({ authorization: 'Bearer token', 'sec-fetch-site': 'cross-site' }), {}, () => {}), error => error.status === 403);
   assert.throws(() => guard(request({ 'x-csrf-protection': '1' }, 'POST', false), {}, () => {}), error => error.status === 415);
   let calls = 0;
   guard(request({ 'x-csrf-protection': '1', origin: config.APP_ORIGIN }), {}, () => calls++);
+  guard(request({ 'x-csrf-protection': '1', origin: config.APP_ORIGIN, 'sec-fetch-site': 'cross-site' }), {}, () => calls++);
+  guard(request({ authorization: 'Bearer token', origin: config.APP_ORIGIN, 'sec-fetch-site': 'cross-site' }), {}, () => calls++);
   guard(request({ authorization: 'Bearer token' }), {}, () => calls++);
   guard(request({}, 'GET'), {}, () => calls++);
-  assert.equal(calls, 3);
+  assert.equal(calls, 5);
 });
 
 test('RBAC rejects unauthenticated and non-admin requests', () => {

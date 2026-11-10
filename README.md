@@ -107,12 +107,24 @@ The frontend uses the short-lived access token in an `Authorization: Bearer` hea
 ## Tests and checks
 
 ```powershell
-npm.cmd install --include=dev
+npm.cmd ci --include=dev
 npm.cmd run check
 npm.cmd test
 ```
 
 The integration suite uses an isolated in-memory MongoDB replica set. The browser suite belongs to the separate frontend project and is not part of this backend package.
+
+## Check MongoDB Atlas
+
+Run `npm run setup:local` to prepare the ignored backend `.env` and a private JWT secret. Set `MONGODB_URI` to the URI copied from your Atlas cluster, including the `secure_notes` database name, then run `npm run db:check`.
+
+The check verifies authentication, ping, replica-set/sharded topology, and required indexes without changing data. On a fresh database, review and run `npm run db:indexes` once, then repeat the check. Index setup can backfill usernames on existing accounts.
+
+The Atlas database user needs `readWrite` on `secure_notes`. Network access must permit the deployed backend. Reviewers access the frontend/API; their IP addresses do not need to be added to Atlas. The Windows helper contains seed addresses for the originally configured cluster; use your own cluster's Atlas connection string if it differs.
+
+## Deploy on Vercel
+
+See [DEPLOYMENT.md](DEPLOYMENT.md). The `api/index.js` entrypoint reuses the MongoDB pool across warm invocations. `vercel.json` routes API and health URLs to it. `npm start` continues to use the standalone server locally or on Render.
 
 ## Deploy backend
 
