@@ -30,7 +30,7 @@ The in-memory limiter is per function instance. A shared limiter store is needed
 
 ## Vercel frontend
 
-Use Framework Preset **Other**. The included `vercel.json` serves the static site without a build. The production value in `config.js` already points to the current backend. Change that value only when using a different backend HTTPS URL ending in `/api`. Keep backend `APP_ORIGIN` aligned with the frontend production domain.
+Use Framework Preset **Other**. The included `vercel.json` serves the static site without a build. The production value in `config.js` already points to the current backend. Change that value only when using a different backend HTTPS URL ending in `/api/v1`. Keep backend `APP_ORIGIN` aligned with the frontend production domain.
 
 ## Reviewer verification
 
@@ -47,7 +47,7 @@ Reply All to the exact original email thread within two days of receiving it. In
 - Frontend GitHub repository link
 - Backend GitHub repository link
 - Live frontend production website URL
-- Live backend API base URL ending in `/api`
+- Live backend API base URL ending in `/api/v1`
 - Swagger UI URL ending in `/docs`
 - Dedicated reviewer administrator username/password, shared privately in the email
 

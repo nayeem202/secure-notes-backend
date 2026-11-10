@@ -25,6 +25,10 @@ flowchart LR
   Bootstrap --> Infrastructure
 ```
 
+## HTTP API versioning
+
+`src/interfaces/http/api-version.js` defines the canonical `/api/v1` prefix shared by the HTTP router and OpenAPI paths. Existing unversioned application URLs redirect with HTTP 308; CORS preflights work on both paths.
+
 ## Contracts and request flow
 
 The composition root injects repository, transaction, password, and token objects into the use-case factories. JavaScript structural contracts keep the application independent of framework classes. The application tests replace these objects with small fakes; the integration tests use real Mongoose adapters and a replica set.

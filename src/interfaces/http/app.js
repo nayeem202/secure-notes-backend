@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import express from 'express';
+import express, { Router } from 'express';
 import helmet from 'helmet';
 import { rateLimit } from 'express-rate-limit';
 import { authRoutes } from './routes/auth.routes.js';
@@ -13,6 +13,7 @@ import { protectMutations } from './middleware/security.js';
 import { allowFrontendOrigin } from './middleware/cors.js';
 import { ApiError } from './api-error.js';
 import { documentationRoutes } from './documentation/routes.js';
+import { API_BASE_PATH } from './api-version.js';
 
 export function createHttpApp({ config, useCases, health, logger }) {
   const app = express();
@@ -69,16 +70,23 @@ export function createHttpApp({ config, useCases, health, logger }) {
       next();
     },
     makeLimiter(config.API_RATE_LIMIT, 60 * 1000),
-    protectMutations(config),
-    express.json({ limit: '128kb', strict: true }),
   );
   const context = { config, useCases };
-  app.use('/api/auth', authRoutes(context, authLimiter));
-  app.use('/api/notes', noteRoutes(context));
-  app.use('/api/posts', postRoutes(context));
-  app.use('/api/admin/analytics', analyticsRoutes(context));
-  app.use('/api/admin', adminRoutes(context));
-  app.use('/api/users', publicUserRoutes(context));
+  const api = Router();
+  api.use(protectMutations(config), express.json({ limit: '128kb', strict: true }));
+  api.use('/auth', authRoutes(context, authLimiter));
+  api.use('/notes', noteRoutes(context));
+  api.use('/posts', postRoutes(context));
+  api.use('/admin/analytics', analyticsRoutes(context));
+  api.use('/admin', adminRoutes(context));
+  api.use('/users', publicUserRoutes(context));
+  app.use(API_BASE_PATH, api);
+  app.use('/api', (req, res, next) => {
+    if (/^\/(?:auth|notes|posts|admin|users)(?:\/|$)/i.test(req.path)) {
+      return res.redirect(308, `${API_BASE_PATH}${req.url}`);
+    }
+    next();
+  });
   if (config.SERVE_FRONTEND) {
     app.use(
       express.static(fileURLToPath(new URL('../../../public', import.meta.url)), {

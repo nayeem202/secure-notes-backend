@@ -29,12 +29,18 @@ test('the OpenAPI contract validates and separates public reads from authenticat
     }
   }
   assert.equal(ids.length, 26);
+  assert.ok(
+    Object.keys(spec.paths)
+      .filter((path) => path.startsWith('/api/'))
+      .every((path) => path.startsWith('/api/v1/')),
+  );
+  assert.equal(spec.paths['/api/posts'], undefined);
   assert.equal(new Set(ids).size, ids.length);
   assert.deepEqual(spec.security, [{ bearerAuth: [] }]);
-  assert.deepEqual(spec.paths['/api/posts'].get.security, []);
-  assert.deepEqual(spec.paths['/api/users/{username}/posts'].get.security, []);
-  assert.equal(spec.paths['/api/notes'].get.security, undefined);
-  assert.equal(spec.paths['/api/admin/users'].get.security, undefined);
+  assert.deepEqual(spec.paths['/api/v1/posts'].get.security, []);
+  assert.deepEqual(spec.paths['/api/v1/users/{username}/posts'].get.security, []);
+  assert.equal(spec.paths['/api/v1/notes'].get.security, undefined);
+  assert.equal(spec.paths['/api/v1/admin/users'].get.security, undefined);
   assert.deepEqual(
     Object.keys(spec.components.schemas.PublicUserPosts.properties.user.properties),
     ['username'],
@@ -57,7 +63,7 @@ test('interactive documentation and its local assets load with the existing scri
   const spec = await request(app).get('/openapi.json').expect(200);
   assert.equal(spec.body.servers[0].url, config.API_ORIGIN);
   await request(app).get('/docs/package.json').expect(404);
-  await request(app).get('/api/notes').expect(401);
+  await request(app).get('/api/v1/notes').expect(401);
 });
 
 test('the documentation API origin must be an exact HTTP origin and HTTPS in production', () => {

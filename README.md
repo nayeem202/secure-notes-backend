@@ -7,18 +7,18 @@ Express REST API for a secure note-taking application, with MongoDB/Mongoose, JW
 | Resource                      | URL                                                                                   |
 | ----------------------------- | ------------------------------------------------------------------------------------- |
 | Website                       | [Secure Notes](https://secure-notes-frontend-rho.vercel.app)                          |
-| Backend API base              | `https://secure-notes-backend-delta.vercel.app/api`                                   |
+| Backend API base              | `https://secure-notes-backend-delta.vercel.app/api/v1`                                |
 | Interactive API documentation | [Swagger UI](https://secure-notes-backend-delta.vercel.app/docs)                      |
 | OpenAPI document              | [openapi.json](https://secure-notes-backend-delta.vercel.app/openapi.json)            |
-| Public API example            | [GET /api/posts](https://secure-notes-backend-delta.vercel.app/api/posts)             |
+| Public API example            | [GET /api/v1/posts](https://secure-notes-backend-delta.vercel.app/api/v1/posts)       |
 | Database readiness            | [GET /health/ready](https://secure-notes-backend-delta.vercel.app/health/ready)       |
 | Frontend repository           | [nayeem202/secure-notes-frontend](https://github.com/nayeem202/secure-notes-frontend) |
 
-The website and API documentation are accessible without a Vercel account. The API base is a prefix: GET `/api` itself is not a route.
+The website and API documentation are accessible without a Vercel account. The API base is a prefix: GET `/api/v1` itself is not a route.
 
 ## Try the API
 
-1. Open Swagger UI and expand `POST /api/auth/register` to register a unique account, or use `POST /api/auth/login` for an existing account.
+1. Open Swagger UI and expand `POST /api/v1/auth/register` to register a unique account, or use `POST /api/v1/auth/login` for an existing account.
 2. Click **Try it out**, enter the JSON body, and click **Execute**.
 3. Copy `data.accessToken` from the successful response. Click **Authorize** and paste the token without the `Bearer` prefix.
 4. Test your private notes and posts. Administration operations require an administrator account.
@@ -87,7 +87,7 @@ npm run dev
 
 Use `npm.cmd` in Windows PowerShell if script execution policy blocks `npm.ps1`. The frontend development server uses Node.js built-ins.
 
-Open `http://localhost:5500`. The API is at `http://localhost:3000/api`, and local Swagger UI is at `http://localhost:3000/docs`. Keep these local environment settings:
+Open `http://localhost:5500`. The API is at `http://localhost:3000/api/v1`, and local Swagger UI is at `http://localhost:3000/docs`. Keep these local environment settings:
 
 ```dotenv
 APP_ORIGIN=http://localhost:5500
@@ -174,9 +174,13 @@ The local template is [.env.example](.env.example). `npm run setup:local` create
 
 Origins must have no path or trailing slash and use HTTPS in production. CORS permits the configured frontend origin; browser writes must come from the configured frontend or backend origin.
 
+## API versioning
+
+Application endpoints use `/api/v1`. Unversioned application links such as `/api/posts` return HTTP 308 redirects to the matching v1 URL, preserving the HTTP method, request body, and query parameters. Unsupported versions return HTTP 404. Swagger UI and health endpoints stay at `/docs`, `/openapi.json`, and `/health/*`.
+
 ## API overview
 
-Paths below are relative to `/api`. Swagger UI includes request schemas, parameters, response schemas, and authentication controls.
+Paths below are relative to `/api/v1`. Swagger UI includes request schemas, parameters, response schemas, and authentication controls.
 
 | Method             | Endpoint                     | Access                                          |
 | ------------------ | ---------------------------- | ----------------------------------------------- |

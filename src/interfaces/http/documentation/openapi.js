@@ -1,4 +1,5 @@
 import { MAX_OFFSET } from '../../../domain/pagination.js';
+import { API_BASE_PATH } from '../api-version.js';
 
 const ref = (name) => ({ $ref: `#/components/schemas/${name}` });
 const parameter = (name) => ({ $ref: `#/components/parameters/${name}` });
@@ -215,7 +216,7 @@ export function createOpenApi(config) {
       title: 'Secure Notes API',
       version: '1.0.0',
       description: [
-        'Interactive documentation for the deployed Secure Notes backend.',
+        'Interactive documentation for the deployed Secure Notes backend. Application endpoints use /api/v1.',
         '1. Register a unique account or log in using **Try it out**.',
         '2. Copy **data.accessToken** from the response.',
         '3. Click **Authorize** and paste the token without the Bearer prefix.',
@@ -234,7 +235,7 @@ export function createOpenApi(config) {
       { name: 'Health' },
     ],
     paths: {
-      '/api/auth/register': {
+      [`${API_BASE_PATH}/auth/register`]: {
         post: operation('Authentication', 'register', 'Register an account', {
           public: true,
           body: 'Register',
@@ -242,14 +243,14 @@ export function createOpenApi(config) {
           status: 201,
         }),
       },
-      '/api/auth/login': {
+      [`${API_BASE_PATH}/auth/login`]: {
         post: operation('Authentication', 'login', 'Sign in with username or email', {
           public: true,
           body: 'Login',
           response: 'SessionResult',
         }),
       },
-      '/api/auth/me': {
+      [`${API_BASE_PATH}/auth/me`]: {
         get: operation('Authentication', 'getProfile', 'Read your profile', {
           response: 'UserResult',
         }),
@@ -258,7 +259,7 @@ export function createOpenApi(config) {
           response: 'UserResult',
         }),
       },
-      '/api/auth/password': {
+      [`${API_BASE_PATH}/auth/password`]: {
         patch: operation(
           'Authentication',
           'changePassword',
@@ -269,13 +270,13 @@ export function createOpenApi(config) {
           },
         ),
       },
-      '/api/auth/logout': {
+      [`${API_BASE_PATH}/auth/logout`]: {
         post: operation('Authentication', 'logout', 'Sign out and revoke existing sessions', {
           body: 'Logout',
           status: 204,
         }),
       },
-      '/api/notes': {
+      [`${API_BASE_PATH}/notes`]: {
         get: operation('Notes', 'listOwnNotes', 'List your private notes', {
           parameters: listParameters,
           response: 'NotePage',
@@ -286,7 +287,7 @@ export function createOpenApi(config) {
           status: 201,
         }),
       },
-      '/api/notes/{id}': {
+      [`${API_BASE_PATH}/notes/{id}`]: {
         parameters: [parameter('Id')],
         get: operation('Notes', 'getNote', 'Read a note', {
           response: 'NoteResult',
@@ -298,7 +299,7 @@ export function createOpenApi(config) {
         }),
         delete: operation('Notes', 'deleteNote', 'Delete your own note', { status: 204 }),
       },
-      '/api/posts': {
+      [`${API_BASE_PATH}/posts`]: {
         get: operation('Posts', 'listPosts', 'List public posts', {
           public: true,
           parameters: listParameters,
@@ -310,7 +311,7 @@ export function createOpenApi(config) {
           status: 201,
         }),
       },
-      '/api/posts/{id}': {
+      [`${API_BASE_PATH}/posts/{id}`]: {
         parameters: [parameter('Id')],
         get: operation('Posts', 'getPost', 'Read a public post', {
           public: true,
@@ -322,7 +323,7 @@ export function createOpenApi(config) {
         }),
         delete: operation('Posts', 'deletePost', 'Delete your own post', { status: 204 }),
       },
-      '/api/users/{username}/posts': {
+      [`${API_BASE_PATH}/users/{username}/posts`]: {
         get: operation('Posts', 'getUserPosts', 'List public posts by username', {
           public: true,
           parameters: [parameter('Username'), ...listParameters],
@@ -331,7 +332,7 @@ export function createOpenApi(config) {
             'One aggregate with a Posts lookup. The public user object contains only username.',
         }),
       },
-      '/api/admin/users': {
+      [`${API_BASE_PATH}/admin/users`]: {
         get: operation('Administration', 'listUsers', 'List users', {
           parameters: listParameters,
           response: 'UserPage',
@@ -342,7 +343,7 @@ export function createOpenApi(config) {
           status: 201,
         }),
       },
-      '/api/admin/users/{id}': {
+      [`${API_BASE_PATH}/admin/users/{id}`]: {
         parameters: [parameter('Id')],
         get: operation('Administration', 'getUser', 'Read a user', { response: 'UserResult' }),
         patch: operation(
@@ -356,13 +357,13 @@ export function createOpenApi(config) {
           description: 'Administrators cannot delete their own account.',
         }),
       },
-      '/api/admin/notes': {
+      [`${API_BASE_PATH}/admin/notes`]: {
         get: operation('Administration', 'listAllNotes', 'Read notes from all users', {
           parameters: [...listParameters, { name: 'owner', in: 'query', schema: username }],
           response: 'NotePage',
         }),
       },
-      '/api/admin/analytics/interests': {
+      [`${API_BASE_PATH}/admin/analytics/interests`]: {
         get: operation('Administration', 'groupUsersByInterests', 'Group users by interest', {
           parameters: [
             ...listParameters,

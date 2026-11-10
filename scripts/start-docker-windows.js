@@ -274,7 +274,7 @@ async function main() {
     ).catch(() => {});
   } else {
     console.log(
-      `\nBackend API is ready: ${apiOrigin.origin}/api\nAllowed frontend origin: ${origin.origin}\nContainers keep running after this window closes.\n`,
+      `\nBackend API is ready: ${apiOrigin.origin}/api/v1\nAllowed frontend origin: ${origin.origin}\nContainers keep running after this window closes.\n`,
     );
   }
 }

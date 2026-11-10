@@ -9,7 +9,7 @@ Verified on 2026-11-10 in the supplied Linux workspace and the live Vercel produ
 | Frontend                      | [Secure Notes](https://secure-notes-frontend-rho.vercel.app)                                                                                  |
 | Interactive API documentation | [Swagger UI](https://secure-notes-backend-delta.vercel.app/docs)                                                                              |
 | OpenAPI contract              | [openapi.json](https://secure-notes-backend-delta.vercel.app/openapi.json), OpenAPI 3.1, 26 operations                                        |
-| API base                      | `https://secure-notes-backend-delta.vercel.app/api`; use `/api/posts` for a public read                                                       |
+| API base                      | `https://secure-notes-backend-delta.vercel.app/api/v1`; use `/api/v1/posts` for a public read                                                 |
 | Readiness                     | [Backend readiness](https://secure-notes-backend-delta.vercel.app/health/ready) returns HTTP 200 and `{"status":"ready"}` in the final checks |
 | Hosting target                | `secure-note-team`, production                                                                                                                |
 | Backend runtime               | Node.js 24.x, Mumbai (`bom1`), 30-second maximum request duration                                                                             |
@@ -24,7 +24,7 @@ Verified on 2026-11-10 in the supplied Linux workspace and the live Vercel produ
 | Public user lookup            | User object contains only `username`; public posts and pagination remain available                                                            |
 | Browser errors                | No page errors during the Swagger and frontend reviewer verification                                                                          |
 
-The API base is a prefix; GET `/api` itself is not a defined route.
+The API base is a prefix; GET `/api/v1` itself is not a defined route.
 
 ## Frontend flow checked during the refactor
 
@@ -87,8 +87,8 @@ Each collection also retains MongoDB's built-in `_id_` index. Index-set tests an
 
 | Check                                   | Result                                                                        |
 | --------------------------------------- | ----------------------------------------------------------------------------- |
-| Backend test suite                      | 49 passing tests, including an isolated MongoDB 8.0.18 replica set            |
-| Backend JavaScript                      | 70 files passed syntax and relative-import checks                             |
+| Backend test suite                      | 51 passing tests, including an isolated MongoDB 8.0.18 replica set            |
+| Backend JavaScript                      | 71 files passed syntax and relative-import checks                             |
 | ESLint                                  | Both repositories pass with zero warnings                                     |
 | Formatting                              | Both repositories pass Prettier checks                                        |
 | Hosted CI                               | Workflows configured; account-level runner restriction prevents execution     |
@@ -115,7 +115,7 @@ The request limiter is per backend function instance; global enforcement across 
 
 ## Final quality tooling
 
-Both repositories provide `npm run verify`. The backend runs ESLint with zero warnings allowed, Prettier checks, syntax/import checks, and all 49 tests. The frontend runs ESLint, Prettier checks, and syntax checks.
+Both repositories provide `npm run verify`. The backend runs ESLint with zero warnings allowed, Prettier checks, syntax/import checks, and all 51 tests. The frontend runs ESLint, Prettier checks, and syntax checks.
 
 Each repository has a CI workflow for pushes, pull requests, and manual runs on Node.js 24. Third-party actions are pinned to commit SHAs and workflow permissions are read-only. Backend tests use an isolated MongoDB replica set and cache only its downloaded binary.
 
@@ -127,3 +127,7 @@ Local verification passed in both repositories. GitHub Actions accepted both wor
 - [Frontend CI run](https://github.com/nayeem202/secure-notes-frontend/actions/runs/42864908330)
 
 The workflow runner is pinned to Ubuntu 24.04 to keep the MongoDB test environment stable during GitHub's Ubuntu runner migration. The application runtime is Node.js 24. Both staged production builds passed readiness and source-asset comparisons before promotion. After promotion, the full frontend browser flow and Swagger browser flow passed, including reviewer administrator access, public-profile privacy, private-note CRUD, posts, logout, and persisted data. All three temporary test accounts and their data were removed. Verification bypasses were revoked; the dedicated reviewer administrator remains available.
+
+## API v1 update
+
+Application endpoints now use `/api/v1`. Frontend configuration, Swagger paths, local launcher output, and setup/deployment documentation use the versioned prefix. Compatibility tests cover legacy redirects with query strings, JSON bodies, bearer tokens, preflights, PATCH, and DELETE. Unsupported API versions return HTTP 404.
