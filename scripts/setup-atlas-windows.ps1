@@ -11,19 +11,17 @@ try {
     & node 'scripts/setup-local.js'
     if ($LASTEXITCODE -ne 0) { throw 'Could not create local .env.' }
   }
-  $securePassword = Read-Host 'Enter the rotated Atlas database user password' -AsSecureString
-  if ($securePassword.Length -eq 0) { throw 'Atlas database password cannot be empty.' }
-  $passwordPointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($securePassword)
+  $secureUri = Read-Host 'Paste the Atlas standard mongodb:// URI with your password included' -AsSecureString
+  if ($secureUri.Length -eq 0) { throw 'Atlas connection URI cannot be empty.' }
+  $uriPointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureUri)
   try {
-    $password = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($passwordPointer)
+    $uri = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($uriPointer)
   } finally {
-    [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($passwordPointer)
-    $securePassword.Dispose()
+    [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($uriPointer)
+    $secureUri.Dispose()
   }
-  $encodedPassword = [Uri]::EscapeDataString($password)
-  $password = $null
-  $uri = "mongodb+srv://nayeemahmedemba_db_user:$encodedPassword@cluster0.uzlvf5f.mongodb.net/secure_notes?retryWrites=true&w=majority&appName=Cluster0"
-  $encodedPassword = $null
+  if (-not $uri.StartsWith('mongodb://')) { throw 'Use the standard mongodb:// URI, not the mongodb+srv:// URI.' }
+  if ($uri.Contains('<') -or $uri.Contains('>')) { throw 'Replace the password placeholder in Atlas before entering the URI.' }
   $envPath = Join-Path $projectRoot '.env'
   $envLines = [IO.File]::ReadAllLines($envPath)
   $uriLineFound = $false
