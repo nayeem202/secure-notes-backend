@@ -1,10 +1,21 @@
 # Secure Notes Backend
 
+## Live deployment
+
+- Frontend: [https://secure-notes-frontend-rho.vercel.app](https://secure-notes-frontend-rho.vercel.app)
+- API: [https://secure-notes-backend-delta.vercel.app/api](https://secure-notes-backend-delta.vercel.app/api)
+- Database readiness: [https://secure-notes-backend-delta.vercel.app/health/ready](https://secure-notes-backend-delta.vercel.app/health/ready)
+- Frontend repository: https://github.com/nayeem202/secure-notes-frontend
+- Backend repository: https://github.com/nayeem202/secure-notes-backend
+
+The production URLs are public and do not require a Vercel account. Register through the website to use private notes. Admin setup is documented in the backend README.
+
+
 Standalone Express REST API for Secure Notes. This is the backend project and GitHub repository; the independent static frontend is in `secure-notes-frontend`.
 
 ## Stack and structure
 
-- Node.js 20.19 or later, Express 5, MongoDB, and Mongoose
+- Node.js 20.19 through 24.x (production: 24.x), Express 5, MongoDB, and Mongoose
 - JWT authentication with bcrypt password hashing
 - Routes, controllers, validation, middleware, services, models, and configuration are kept in separate `src/` modules
 - MongoDB transactions require a replica set; the supplied Docker Compose setup initializes one

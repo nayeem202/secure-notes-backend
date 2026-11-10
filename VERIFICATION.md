@@ -1,39 +1,57 @@
 # Verification record
 
-Checked on 2026-11-10 in the supplied Linux workspace using Node.js 20.20.2.
+Verified on 2026-11-10 in the supplied Linux workspace and the live Vercel production deployment.
+
+## Production
+
+| Item | Result |
+| --- | --- |
+| Frontend | [https://secure-notes-frontend-rho.vercel.app](https://secure-notes-frontend-rho.vercel.app) |
+| API | [https://secure-notes-backend-delta.vercel.app/api](https://secure-notes-backend-delta.vercel.app/api) |
+| Readiness | [https://secure-notes-backend-delta.vercel.app/health/ready](https://secure-notes-backend-delta.vercel.app/health/ready) returns HTTP 200 and `{"status":"ready"}` |
+| Hosting target | `secure-note-team`, production |
+| Backend runtime | Node.js 24.x, Mumbai (`bom1`), 30-second maximum request duration |
+| Backend deployed source | `a52aa5f24bb9ec7d2529e5431bd364726ac3eed8` |
+| Frontend deployed source | `fe74110b98ce51d352b74d217313b0edda8b0fb2` |
+| Backend deployment | `dpl_EvN4QVQHhbSoxRJU9GkbLsLk6CJC`, READY, promoted |
+| Frontend deployment | `dpl_Dh7GzfUSUn5EfR6KA221eYm7fRnd`, READY, promoted |
+| Atlas | `secure_notes`: authentication, ping, replica-set topology, and required indexes passed |
+| Anonymous access | Frontend and backend readiness accessible without a Vercel session or bypass header |
+| CORS | Allowed production frontend preflight returned HTTP 204 with the exact allowed origin |
+| Private data | Anonymous notes request returned application HTTP 401 |
+| Browser errors | No page errors or unexpected console errors during the production flow |
+
+## Live browser and data checks
+
+A fresh Chrome session exercised the public frontend, production API, and real Atlas database:
+
+1. Register a temporary user through the browser.
+2. Create a private note; verify the stored Atlas record and rendered list.
+3. Edit/read the note.
+4. Publish a post; verify it in a separate anonymous browser session.
+5. Look up posts by username.
+6. Sign in as a temporary administrator; verify user listings, filtered private-note read access, and interest aggregation.
+7. Sign out and sign in again by username; verify the persisted note.
+8. Delete the test note and post through the browser.
+
+Both temporary test accounts and their remaining data were removed in an Atlas transaction. Temporary automation bypasses created for staged verification were revoked; reviewer access was separately verified without those bypasses.
+
+## Local checks
 
 | Check | Result |
 | --- | --- |
-| Dependency installation | Passed: `npm ci --include=dev`; Zod subsequently patched to 4.6.7 with its lockfile updated |
-| Backend syntax and relative imports | Passed: `npm run check`, 47 JavaScript files |
-| Frontend JavaScript syntax | Passed: `npm run check` in the frontend |
-| Backend test suite | Passed: 37 tests, including a real isolated MongoDB 8.0.18 replica set |
-| Separate frontend/API domains | Passed: allowed-origin preflight, registration, login, and note writes; hostile origins rejected |
-| Browser to API to database to UI | Passed locally in Chrome using the actual frontend, Vercel handler, and isolated replica set: register, create/edit/delete a note, publish a post, sign out, sign in, and confirm persistence |
-| Browser cross-site metadata | All seven tested writes carried the allowed frontend Origin and `Sec-Fetch-Site: cross-site` |
-| Username HTML validation | Passed in Chrome for all five patterned inputs; valid usernames accepted, invalid usernames rejected, no pattern errors |
-| Read-only database CLI | `npm run db:check` equivalent passed against the isolated database with required indexes |
-| Production dependency audit | Passed after Zod update: `npm audit --omit=dev --audit-level=high` reported 0 vulnerabilities |
-| Diff whitespace | Passed in both repositories |
-| Live MongoDB Atlas | Not verified: no actual Atlas credentials/URI configured in this checkout |
-| Vercel production deployment | Pending: the selected account's team scope returned 403; user authorization is required |
-| GitHub source updates | Pending: Git push authentication failed; local fixes have not been pushed |
-| Docker image / Windows launch | Not exercised during this review |
+| Backend test suite | 37 passing tests, including an isolated MongoDB 8.0.18 replica set |
+| Backend JavaScript | 47 files passed syntax and relative-import checks |
+| Frontend JavaScript | Syntax checks passed |
+| Username HTML patterns | All five patterned inputs passed Chrome validation |
+| Production dependency audit | `npm audit --omit=dev --audit-level=high`: 0 vulnerabilities after Zod 4.6.7 |
+| Build inputs | No private `.env` files in either deployment upload |
+| Native Windows / complete Docker launch | Not exercised by this run |
 
-## Changes from the review
+The runtime log scan contained Node/Mongoose deprecation warnings (`url.parse()` and Mongoose's legacy `new` update option). These were stderr warnings; the browser flow and application requests passed. No warning suppression was added.
 
-- Corrected the mutation guard so a trusted, separately hosted frontend is allowed even when browser Fetch Metadata identifies the request as cross-site.
-- Added regression coverage for the deployed frontend's authentication and note flow.
-- Added the Vercel backend entrypoint and separate frontend/backend deployment configuration.
-- Added a read-only Atlas/database check; it never enables automatic index creation.
-- Switched the Docker dependency install to `npm ci`.
-- Patched Zod from 4.6.5 to 4.6.7 after a high-severity audit finding.
-- Escaped the username pattern's hyphen for modern HTML pattern validation.
+Secrets are stored in Vercel Secret environment variables and in the ignored local backend environment file. The production JWT secret is independent of the local development secret. No authentication state, credentials, or temporary browser artifacts are committed.
 
-The local browser check used an isolated database, not the user's Atlas cluster. Its test script and screenshot are temporary review artifacts under `/tmp/secure-notes-review`; they are not shipped in either repository.
+The default request limiter is per backend function instance. The current deployment is suitable for the assessment; use a shared limiter before requiring global enforcement across scaled instances.
 
-The ignored local `.env` has a generated private JWT secret. Its default local MongoDB URI must be replaced with the real Atlas URI before a live Atlas check or production configuration.
-
-The frontend production backend URL remains a placeholder until the real backend domain is assigned. Do not claim the site is live or submit placeholder links. See [DEPLOYMENT.md](DEPLOYMENT.md) for the public reviewer checks and Reply All submission requirements.
-
-Earlier verification notes described unavailable dependencies and browser execution in a different environment. The successful checks above supersede those local limitations. Native Windows and the Docker stack have not been verified by this run.
+[Deployment instructions](DEPLOYMENT.md) include the Reply All submission checklist. The final documentation commits only update these records and ignored local Vercel metadata; deployed application code matches the source commits above.
