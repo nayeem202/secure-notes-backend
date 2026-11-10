@@ -1,0 +1,42 @@
+{
+  "name": "secure-notes-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Secure Notes REST API built with Express and MongoDB",
+  "type": "module",
+  "engines": { "node": ">=20.19.0" },
+  "config": {
+    "mongodbMemoryServer": {
+      "version": "8.0.18",
+      "downloadDir": "./.cache/mongodb",
+      "disablePostinstall": true
+    }
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "local": "node scripts/start-local.js",
+    "setup:local": "node scripts/setup-local.js",
+    "docker:windows": "node scripts/start-docker-windows.js",
+    "test": "node --test --test-concurrency=1 test/unit.test.js test/local-setup.test.js test/docker-launcher.test.js test/api.test.js",
+    "test:unit": "node --test test/unit.test.js test/local-setup.test.js test/docker-launcher.test.js",
+    "test:integration": "node --test test/api.test.js",
+    "check": "node scripts/check-syntax.js",
+    "db:indexes": "node scripts/create-indexes.js",
+    "db:explain": "node scripts/explain-indexes.js",
+    "create-admin": "node scripts/create-admin.js"
+  },
+  "dependencies": {
+    "bcrypt": "6.0.0",
+    "express": "5.2.1",
+    "express-rate-limit": "8.6.1",
+    "helmet": "8.1.0",
+    "jsonwebtoken": "9.0.3",
+    "mongoose": "9.12.0",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "mongodb-memory-server": "10.3.0",
+    "supertest": "7.2.2"
+  }
+}
