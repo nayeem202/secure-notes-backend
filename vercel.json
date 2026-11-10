@@ -5,11 +5,7 @@
   "functions": {
     "api/index.js": {
       "maxDuration": 30,
-      "includeFiles": [
-        "node_modules/swagger-ui-dist/swagger-ui.css",
-        "node_modules/swagger-ui-dist/swagger-ui-bundle.js",
-        "src/interfaces/http/documentation/swagger-init.js"
-      ]
+      "includeFiles": "{node_modules/swagger-ui-dist/swagger-ui.css,node_modules/swagger-ui-dist/swagger-ui-bundle.js,src/interfaces/http/documentation/swagger-init.js}"
     }
   },
   "rewrites": [
