@@ -36,7 +36,7 @@ try {
   & npm.cmd install --include=dev
   if ($LASTEXITCODE -ne 0) { throw 'Dependency installation failed.' }
   & npm.cmd run db:indexes
-  if ($LASTEXITCODE -ne 0) { throw 'Atlas index setup failed. Check Atlas Network Access and the database user's secure_notes_rw role.' }
+  if ($LASTEXITCODE -ne 0) { throw 'Atlas index setup failed. Check Atlas Network Access and the secure_notes_rw database role.' }
   Write-Host 'Atlas connection saved in the ignored local .env file and required indexes are ready.'
 } finally {
   Pop-Location
